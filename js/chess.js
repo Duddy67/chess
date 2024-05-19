@@ -38,18 +38,18 @@ const Chess = (function() {
         _(_key).coordinates = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7,
                                '1': 7, '2': 6, '3': 5, '4': 4, '5': 3, '6': 2, '7': 1, '8': 0}
         _(_key).pieceAbbreviations = ['K', 'Q', 'R', 'N', 'B', 'P'];
-        _(_key).move = {'from': {'rank': '', 'col': ''}, 'to': {'rank': '', 'col': ''}, 'piece': '', 'capture': false};
+        _(_key).move = {'from': {'rank': '', 'file': ''}, 'to': {'rank': '', 'file': ''}, 'piece': '', 'capture': false};
     }
 
     function _updateChessboard(_) {
         const coordinates = _(_key).coordinates;
         const move = _(_key).move;
         // Get the piece color (ie: the second letter of the string). 
-        const color = _(_key).chessboard[coordinates[move.from.rank]][coordinates[move.from.col]].slice(1, 2);
+        const color = _(_key).chessboard[coordinates[move.from.rank]][coordinates[move.from.file]].slice(1, 2);
 
         // Update the piece position on the chessboard.
-        _(_key).chessboard[coordinates[move.from.rank]][coordinates[move.from.col]] = '';
-        _(_key).chessboard[coordinates[move.to.rank]][coordinates[move.to.col]] = move.piece + color;
+        _(_key).chessboard[coordinates[move.from.rank]][coordinates[move.from.file]] = '';
+        _(_key).chessboard[coordinates[move.to.rank]][coordinates[move.to.file]] = move.piece + color;
     }
 
     function _isMoveAllowed(_) {
@@ -83,10 +83,10 @@ const Chess = (function() {
             }
 
             this._(_key).move.piece = move.charAt(0);
-            this._(_key).move.from.col= move.slice(1, 2);
+            this._(_key).move.from.file = move.slice(1, 2);
             this._(_key).move.from.rank = move.slice(2, 3);
             this._(_key).move.capture = move.slice(3, 4) == 'x' ? true : false;
-            this._(_key).move.to.col = this._(_key).move.capture ? move.slice(4, 5) : move.slice(3, 4);
+            this._(_key).move.to.file = this._(_key).move.capture ? move.slice(4, 5) : move.slice(3, 4);
             this._(_key).move.to.rank = this._(_key).move.capture ? move.slice(5, 6) : move.slice(4, 5);
 
             _updateChessboard(this._);

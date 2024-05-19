@@ -19,10 +19,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.square img {
-
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 .square.grid-pattern-1:nth-child(odd) {
@@ -46,7 +45,7 @@
 }
 
 .piece {
-  width: 60px;
-  height: 60px;
+  width: 100%;
+  height: 100%;
   position: absolute;
 }
