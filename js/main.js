@@ -3,10 +3,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const chess = new Chess.init();
 
-    chess.setMove('Pe2e4');
-    //console.log(chess.getChessboard());
+    //chess.setMove('Pe2e4');
+    console.log(chess.getPawnMoves('e2'));
     createChessboard(chess);
 
+    document.querySelectorAll('.piece').forEach((piece) => {
+        piece.addEventListener('click', (e) => {
+            const coordinates = e.target.parentElement.id;
+            const pieceType = e.target.dataset.piece;
+
+            if (pieceType.charAt(1) == chess.getTurn()) {
+                console.log(coordinates + ' ' + pieceType);
+            }
+
+        });
+    });
 
 });
 
@@ -28,7 +39,7 @@ function createChessboard(chess) {
 
             // A piece is on the square.
             if (chessboard[i][j]) {
-                square.innerHTML += '<img src="images/' + chessboard[i][j] + '" class="piece">';
+                square.innerHTML += '<img src="images/' + chessboard[i][j] + '" data-piece="' + chessboard[i][j] + '" class="piece">';
             }
 
             // Add the square to the chessboard.

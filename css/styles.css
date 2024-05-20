@@ -49,3 +49,7 @@
   height: 100%;
   position: absolute;
 }
+
+.piece:hover {
+    cursor: grab;
+} 
