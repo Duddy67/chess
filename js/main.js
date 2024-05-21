@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chess = new Chess.init();
 
     //chess.setMove('Pe2e4');
-    console.log(chess.getPawnMoves('e2'));
+    //console.log(chess.getPawnMoves('e2'));
     createChessboard(chess);
 
     document.querySelectorAll('.piece').forEach((piece) => {
@@ -14,8 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (pieceType.charAt(1) == chess.getTurn()) {
                 console.log(coordinates + ' ' + pieceType);
+                let moves = [];
+                switch (pieceType.charAt(0)) {
+                    case 'P':
+                        moves = chess.getPawnMoves(coordinates);
+                }
+                console.log(moves);
             }
-
         });
     });
 
