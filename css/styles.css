@@ -53,3 +53,92 @@
 .piece:hover {
     cursor: grab;
 } 
+
+.square-a1 {
+  /* Uses and manages 2 background images */
+  background-image: url("../images/a.png"), url("../images/1.png");
+  background-position: bottom left, top left;
+  background-repeat: no-repeat, no-repeat;
+  background-size: 15%;
+}
+
+.file-b, 
+.file-c, 
+.file-d, 
+.file-e, 
+.file-f, 
+.file-g, 
+.file-h {
+  background-repeat: no-repeat;
+  background-position: bottom left;
+  background-size: 15%;
+}
+
+.rank-2, 
+.rank-3, 
+.rank-4, 
+.rank-5, 
+.rank-6, 
+.rank-7, 
+.rank-8 {
+  background-repeat: no-repeat;
+  background-position: top left;
+  background-size: 15%;
+}
+
+.file-b {
+  background-image: url("../images/b.png");
+}
+
+.file-c {
+  background-image: url("../images/c.png");
+}
+
+.file-d {
+  background-image: url("../images/d.png");
+}
+
+.file-e {
+  background-image: url("../images/e.png");
+}
+
+.file-f {
+  background-image: url("../images/f.png");
+}
+
+.file-g {
+  background-image: url("../images/g.png");
+}
+
+.file-h {
+  background-image: url("../images/h.png");
+}
+
+.rank-2 {
+  background-image: url("../images/2.png");
+}
+
+.rank-3 {
+  background-image: url("../images/3.png");
+}
+
+.rank-4 {
+  background-image: url("../images/4.png");
+}
+
+.rank-5 {
+  background-image: url("../images/5.png");
+}
+
+.rank-6 {
+  background-image: url("../images/6.png");
+}
+
+.rank-7 {
+  background-image: url("../images/7.png");
+}
+
+.rank-8 {
+  background-image: url("../images/8.png");
+}
+
