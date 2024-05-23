@@ -60,7 +60,7 @@ const Chess = (function() {
     }
 
     /*
-     * Returns the square value (ie: empty or occupied by a piece) at a given position.
+     * Returns the value of a square (ie: empty or occupied by a piece) at a given position.
      */
     function _getSquare(_, position) {
         const rank = position.charAt(1);
@@ -294,6 +294,86 @@ const Chess = (function() {
         return _getMoves(_, position, steps, 'left-diagonal-backward');
     }
 
+    function _getKnightRightForwardMove1(_, position) {
+        let previousPosition = '';
+
+        for (let i = 0; i < 2; i++) {
+            previousPosition = position;
+            position = _goOneStepForward(_, position);
+
+            if (position == previousPosition) {
+                return [];
+            }
+        }
+
+        position = _goOneStepRight(_, position);
+
+        return position == previousPosition ? [] : [position];
+    }
+
+    function _getKnightRightForwardMove2(_, position) {
+        let previousPosition = position;
+
+        position = _goOneStepForward(_, position);
+
+        if (position == previousPosition) {
+            return [];
+        }
+
+        for (let i = 0; i < 2; i++) {
+            previousPosition = position;
+            position = _goOneStepRight(_, position);
+
+            if (position == previousPosition) {
+                return [];
+            }
+        }
+
+        return [position];
+
+    }
+
+    function _getKnightLeftForwardMove1(_, position) {
+        let previousPosition = '';
+
+        for (let i = 0; i < 2; i++) {
+            previousPosition = position;
+            position = _goOneStepForward(_, position);
+
+            if (position == previousPosition) {
+                return [];
+            }
+        }
+
+        position = _goOneStepLeft(_, position);
+
+        return position == previousPosition ? [] : [position];
+    }
+
+    function _getKnightLeftForwardMove2(_, position) {
+        let previousPosition = position;
+
+        position = _goOneStepForward(_, position);
+
+        if (position == previousPosition) {
+            return [];
+        }
+
+        for (let i = 0; i < 2; i++) {
+            previousPosition = position;
+            position = _goOneStepLeft(_, position);
+
+            if (position == previousPosition) {
+                return [];
+            }
+        }
+
+        return [position];
+    }
+
+    function _getKnightLeftBackwardMoves(_, position) {
+    }
+
 
     // Function used as a class constructor.
     const _Chess = function() {
@@ -356,7 +436,21 @@ const Chess = (function() {
         },
 
         getKnightMoves: function(position) {
+            let moves = [];
+            //return _getKnightLeftForwardMove1(this._, position);
+            moves = _getKnightRightForwardMove2(this._, position);
 
+            for (let i = 0; i < moves.length; i++) {
+                let square = _getSquare(this._, moves[i]);
+
+                // The square is occupied by a friend piece.
+                if (square.charAt(1) == this._(_key).turn) {
+                    // The knight can't move here.
+                    moves.pop();
+                }
+            }
+
+            return moves;
         },
 
         getRookMoves: function(position) {

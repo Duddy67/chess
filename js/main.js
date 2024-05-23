@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const chess = new Chess.init();
 
-    chess.setMove('Qd1d4');
+    chess.setMove('Nb1d4');
     //console.log(chess.getPawnMoves('e2'));
     createChessboard(chess);
 
