@@ -35,14 +35,17 @@ const Chess = (function() {
             ['Pw', 'Pw', 'Pw', 'Pw', 'Pw', 'Pw', 'Pw', 'Pw'],
             ['Rw', 'Nw', 'Bw', 'Qw', 'Kw', 'Bw', 'Nw', 'Rw'],
         ];
-        _(_key).ranks = [1, 2, 3, 4, 5, 6, 7, 8];
-        _(_key).files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+        //_(_key).ranks = [1, 2, 3, 4, 5, 6, 7, 8];
+        //_(_key).files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
         // Maps between the chess ranks and files and the 2 dimensional array indexes.
         _(_key).coordinates = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7,
                                '1': 7, '2': 6, '3': 5, '4': 4, '5': 3, '6': 2, '7': 1, '8': 0}
-        _(_key).pieceAbbreviations = ['K', 'Q', 'R', 'N', 'B', 'P'];
+        //_(_key).pieceAbbreviations = ['K', 'Q', 'R', 'N', 'B', 'P'];
         _(_key).move = {'from': {'rank': '', 'file': ''}, 'to': {'rank': '', 'file': ''}, 'piece': '', 'capture': false};
+        // The maximum steps a piece can go on the chessboard.
         _(_key).MAX_STEPS = 7;
+        // The maximum number of squares a rank, a file or a diagonal can have.
+        _(_key).MAX_SQUARES = 8;
     }
 
     function _updateChessboard(_) {
@@ -57,7 +60,7 @@ const Chess = (function() {
     }
 
     /*
-     * Returns a square value (ie: empty or occupied by a piece) at a given position.
+     * Returns the square value (ie: empty or occupied by a piece) at a given position.
      */
     function _getSquare(_, position) {
         const rank = position.charAt(1);
@@ -66,24 +69,33 @@ const Chess = (function() {
         return _(_key).chessboard[_(_key).coordinates[rank]][_(_key).coordinates[file]];
     }
 
-    function _getOneStepForward(_, position) {
+    /*
+     * Returns the coordinates of a step forward went from a given position.
+     * If a boundary effect is detected, the given position is returned.
+     */
+    function _goOneStepForward(_, position) {
         // Extract rank coordinates from the given position.
         let rank = position.charAt(1);
 
         // One step forward from the white viewpoint.
         if (_(_key).turn == 'w') {
             // Check for boundary effect.
-            rank = parseInt(rank) < 8 ? parseInt(rank) + 1 : rank;
+            rank = parseInt(rank) < _(_key).MAX_SQUARES ? parseInt(rank) + 1 : rank;
         }
         // One step forward from the black viewpoint.
         else {
+            // Check for boundary effect.
             rank = parseInt(rank) > 1 ? parseInt(rank) - 1 : rank;
         }
 
         return position.charAt(0) + rank;
     }
 
-    function _getOneStepBackward(_, position) {
+    /*
+     * Returns the coordinates of a step backward went from a given position.
+     * If a boundary effect is detected, the given position is returned.
+     */
+    function _goOneStepBackward(_, position) {
         // Extract rank coordinates from the given position.
         let rank = position.charAt(1);
 
@@ -94,13 +106,18 @@ const Chess = (function() {
         }
         // One step backward from the black viewpoint.
         else {
-            rank = parseInt(rank) < 8 ? parseInt(rank) + 1 : rank;
+            // Check for boundary effect.
+            rank = parseInt(rank) < _(_key).MAX_SQUARES ? parseInt(rank) + 1 : rank;
         }
 
         return position.charAt(0) + rank;
     }
 
-    function _getOneStepRight(_, position) {
+    /*
+     * Returns the coordinates of a step right went from a given position.
+     * If a boundary effect is detected, the given position is returned.
+     */
+    function _goOneStepRight(_, position) {
         // Extract file coordinates from the given position.
         let file = position.charAt(0);
 
@@ -111,13 +128,18 @@ const Chess = (function() {
         }
         // One step right from the black viewpoint.
         else {
+            // Check for boundary effect.
             file = file.localeCompare('a') === 1 ? String.fromCharCode(file.charCodeAt(0) - 1) : file;
         }
 
         return file + position.charAt(1);
     }
 
-    function _getOneStepLeft(_, position) {
+    /*
+     * Returns the coordinates of a step left went from a given position.
+     * If a boundary effect is detected, the given position is returned.
+     */
+    function _goOneStepLeft(_, position) {
         // Extract file coordinates from the given position.
         let file = position.charAt(0);
 
@@ -128,6 +150,7 @@ const Chess = (function() {
         }
         // One step left from the black viewpoint.
         else {
+            // Check for boundary effect.
             file = file.localeCompare('h') === -1 ? String.fromCharCode(file.charCodeAt(0) + 1) : file;
         }
 
@@ -135,54 +158,9 @@ const Chess = (function() {
     }
 
     /*
-     * Returns the possible forward moves from a given position.
+     * Returns the possible moves from a given position to a given direction.
      */
-    /*function __getForwardMoves(_, position, steps) {
-        // Extract file and rank coordinates from the given position.
-        let file = position.charAt(0); 
-        let rank = position.charAt(1);
-        // Get the number of steps according to the given 'steps' parameter.
-        steps = steps === undefined ? _(_key).MAX_STEPS : steps;
-        let moves = [];
-
-        // Loop through each step.
-        for (let i = 0; i < steps; i++) {
-            let previousRank = rank;
-
-            // One step forward from the white viewpoint.
-            if (_(_key).turn == 'w') {
-                // Check for boundary effect.
-                rank = parseInt(rank) < 8 ? parseInt(rank) + 1 : rank;
-            }
-            // One step forward from the black viewpoint.
-            else {
-                rank = parseInt(rank) > 1 ? parseInt(rank) - 1 : rank;
-            }
-
-            let square = _getSquare(_, file + rank);
-
-            // The rank hasn't changed (ie: boundary effect), or the square is occupied by a friend piece.
-            if (rank == previousRank || square.charAt(1) == _(_key).turn) {
-                // The piece can't move here.
-                break;
-            }
-
-            moves.push(file + rank);
-
-            // The square is occupied by an opponent piece (that can possibly be captured). 
-            if (square && square.charAt(1) != _(_key).turn) {
-                // The piece can't go further.
-                break;    
-            }
-        }
-
-        return moves;
-    }*/
-
     function _getMoves(_, position, steps, direction) {
-        // Extract file and rank coordinates from the given position.
-        let file = position.charAt(0); 
-        let rank = position.charAt(1);
         // Get the number of steps according to the given 'steps' parameter.
         steps = steps === undefined ? _(_key).MAX_STEPS : steps;
         let moves = [];
@@ -191,36 +169,74 @@ const Chess = (function() {
         for (let i = 0; i < steps; i++) {
             let previousPosition = position;
 
+            // Go one step in the given direction.
             switch (direction) {
                 case 'forward':
-                    position = _getOneStepForward(_, position);
+                    position = _goOneStepForward(_, position);
                     break;
 
                 case 'backward':
-                    position = _getOneStepBackward(_, position);
+                    position = _goOneStepBackward(_, position);
                     break;
 
                 case 'right':
-                    position = _getOneStepRight(_, position);
+                    position = _goOneStepRight(_, position);
                     break;
 
                 case 'left':
-                    position = _getOneStepLeft(_, position);
+                    position = _goOneStepLeft(_, position);
                     break;
 
                 case 'right-diagonal-forward':
-                    position = _getOneStepRight(_, position);
-                    break;
+                    // First go one step forward.
+                    position = _goOneStepForward(_, position);
 
-                case 'left-diagonal-forward':
-                    position = _getOneStepForward(_, position);
-
+                    // Check for boundary effect.
                     if (position == previousPosition) {
                         break
                     }
 
-                    position = _getOneStepLeft(_, position);
+                    // Then go one step right to get the diagonal direction.
+                    position = _goOneStepRight(_, position);
+                    break;
 
+                case 'left-diagonal-forward':
+                    // First go one step forward.
+                    position = _goOneStepForward(_, position);
+
+                    // Check for boundary effect.
+                    if (position == previousPosition) {
+                        break
+                    }
+
+                    // Then go one step left to get the diagonal direction.
+                    position = _goOneStepLeft(_, position);
+                    break;
+
+                case 'right-diagonal-backward':
+                    // First go one step backward.
+                    position = _goOneStepBackward(_, position);
+
+                    // Check for boundary effect.
+                    if (position == previousPosition) {
+                        break
+                    }
+
+                    // Then go one step right to get the diagonal direction.
+                    position = _goOneStepRight(_, position);
+                    break;
+
+                case 'left-diagonal-backward':
+                    // First go one step backward.
+                    position = _goOneStepBackward(_, position);
+
+                    // Check for boundary effect.
+                    if (position == previousPosition) {
+                        break
+                    }
+
+                    // Then go one step left to get the diagonal direction.
+                    position = _goOneStepLeft(_, position);
                     break;
             }
 
@@ -244,6 +260,7 @@ const Chess = (function() {
         return moves;
     }
 
+    // Functions that return the possible moves in a specific direction.
 
     function _getForwardMoves(_, position, steps) {
         return _getMoves(_, position, steps, 'forward');
@@ -261,8 +278,20 @@ const Chess = (function() {
         return _getMoves(_, position, steps, 'left');
     }
 
+    function _getRightDiagonalForwardMoves(_, position, steps) {
+        return _getMoves(_, position, steps, 'right-diagonal-forward');
+    }
+
     function _getLeftDiagonalForwardMoves(_, position, steps) {
         return _getMoves(_, position, steps, 'left-diagonal-forward');
+    }
+
+    function _getRightDiagonalBackwardMoves(_, position, steps) {
+        return _getMoves(_, position, steps, 'right-diagonal-backward');
+    }
+
+    function _getLeftDiagonalBackwardMoves(_, position, steps) {
+        return _getMoves(_, position, steps, 'left-diagonal-backward');
     }
 
 
@@ -285,23 +314,45 @@ const Chess = (function() {
             return this._(_key).turn;
         },
 
-        getKingMoves: function(position) {
+        // Functions that return the all possible moves for each piece.
 
+        getKingMoves: function(position) {
+            const step = 1;
+            let moves = [];
+
+            return moves.concat(_getForwardMoves(this._, position, step), 
+                                _getBackwardMoves(this._, position, step),
+                                _getRightMoves(this._, position, step),
+                                _getLeftMoves(this._, position, step),
+                                _getRightDiagonalForwardMoves(this._, position, step),
+                                _getLeftDiagonalForwardMoves(this._, position, step),
+                                _getRightDiagonalBackwardMoves(this._, position, step),
+                                _getLeftDiagonalBackwardMoves(this._, position, step)
+            );
         },
 
         getQueenMoves: function(position) {
-            const steps = this._(_key).MAX_STEPS;
-            //let moves = _getForwardMoves(this._, position, steps);
-            //let moves = _getBackwardMoves(this._, position, steps);
-            //let moves = _getRightMoves(this._, position, steps);
-            //let moves = _getLeftMoves(this._, position, steps);
-            let moves = _getLeftDiagonalForwardMoves(this._, position, steps);
+            let moves = [];
 
-            return moves;
+            return moves.concat(_getForwardMoves(this._, position), 
+                                _getBackwardMoves(this._, position),
+                                _getRightMoves(this._, position),
+                                _getLeftMoves(this._, position),
+                                _getRightDiagonalForwardMoves(this._, position),
+                                _getLeftDiagonalForwardMoves(this._, position),
+                                _getRightDiagonalBackwardMoves(this._, position),
+                                _getLeftDiagonalBackwardMoves(this._, position)
+            );
         },
 
         getBishopMoves: function(position) {
+            let moves = [];
 
+            return moves.concat(_getRightDiagonalForwardMoves(this._, position),
+                                _getLeftDiagonalForwardMoves(this._, position),
+                                _getRightDiagonalBackwardMoves(this._, position),
+                                _getLeftDiagonalBackwardMoves(this._, position)
+            );
         },
 
         getKnightMoves: function(position) {
@@ -309,7 +360,13 @@ const Chess = (function() {
         },
 
         getRookMoves: function(position) {
+            let moves = [];
 
+            return moves.concat(_getForwardMoves(this._, position), 
+                                _getBackwardMoves(this._, position),
+                                _getRightMoves(this._, position),
+                                _getLeftMoves(this._, position)
+            );
         },
 
         getPawnMoves: function(position) {
@@ -334,7 +391,7 @@ const Chess = (function() {
             if (!/^[A-Z]/.test(move)) {
                 move = 'P' + move;
             }
- //console.log(_getOneStepForwardPosition(this._, 'a7'));
+ //console.log(_goOneStepForwardPosition(this._, 'a7'));
 
             this._(_key).move.piece = move.charAt(0);
             this._(_key).move.from.file = move.slice(1, 2);

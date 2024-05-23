@@ -16,8 +16,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log(coordinates + ' ' + pieceType);
                 let moves = [];
                 switch (pieceType.charAt(0)) {
+                    case 'K':
+                        moves = chess.getKingMoves(coordinates);
+                        break;
+
                     case 'Q':
                         moves = chess.getQueenMoves(coordinates);
+                        break;
+
+                    case 'B':
+                        moves = chess.getBishopMoves(coordinates);
+                        break;
+
+                    case 'N':
+                        moves = chess.getKnightMoves(coordinates);
+                        break;
+
+                    case 'R':
+                        moves = chess.getRookMoves(coordinates);
                         break;
 
                     case 'P':
