@@ -158,6 +158,29 @@ const Chess = (function() {
     }
 
     /*
+     * Returns the coordinates of two steps went from a given position in a given direction.
+     * If a boundary effect is detected, the given position is returned.
+     * N.B: This function is only used for knight pieces due to their specific moves.
+     */
+    function _goTwoSteps(_, position, direction) {
+        const initialPosition = position;
+        const functionName = '_goOneStep' + direction; 
+
+        for (let i = 0; i < 2; i++) {
+            let previousPosition = position;
+            // N.B: Using eval is not risky here as it's called inside the Chess anonymous 
+            //      function scope. Thus, no one can modify the eval argument from the outside.
+            position = eval(`${functionName}(_, position)`);
+
+            if (position == previousPosition) {
+                return initialPosition;
+            }
+        }
+
+        return position;
+    }
+
+    /*
      * Returns the possible moves from a given position to a given direction.
      */
     function _getMoves(_, position, steps, direction) {
@@ -294,84 +317,68 @@ const Chess = (function() {
         return _getMoves(_, position, steps, 'left-diagonal-backward');
     }
 
-    function _getKnightRightForwardMove1(_, position) {
-        let previousPosition = '';
+    // Functions dedicated to the knight specific moves.
 
-        for (let i = 0; i < 2; i++) {
-            previousPosition = position;
-            position = _goOneStepForward(_, position);
+    function _getKnightForwardMoves(_, position, direction) {
+        const initialPosition = position;
+        let moves = [];
+        let forwardPosition = _goTwoSteps(_, position, 'Forward');
 
-            if (position == previousPosition) {
-                return [];
+        // No boundary effect.
+        if (forwardPosition != position) {
+            const functionName = '_goOneStep' + direction;
+            position = eval(`${functionName}(_, forwardPosition)`);
+
+            // No boundary effect.
+            if (position != forwardPosition) {
+                moves.push(position);
             }
         }
 
-        position = _goOneStepRight(_, position);
+        forwardPosition = _goOneStepForward(_, initialPosition);
 
-        return position == previousPosition ? [] : [position];
-    }
+        // No boundary effect.
+        if (forwardPosition != initialPosition) {
+            position = _goTwoSteps(_, forwardPosition, direction);
 
-    function _getKnightRightForwardMove2(_, position) {
-        let previousPosition = position;
-
-        position = _goOneStepForward(_, position);
-
-        if (position == previousPosition) {
-            return [];
-        }
-
-        for (let i = 0; i < 2; i++) {
-            previousPosition = position;
-            position = _goOneStepRight(_, position);
-
-            if (position == previousPosition) {
-                return [];
+            // No boundary effect.
+            if (position != forwardPosition) {
+                moves.push(position);
             }
         }
 
-        return [position];
-
+        return moves;
     }
 
-    function _getKnightLeftForwardMove1(_, position) {
-        let previousPosition = '';
+    function _getKnightBackwardMoves(_, position, direction) {
+        const initialPosition = position;
+        let moves = [];
+        let backwardPosition = _goTwoSteps(_, position, 'Backward');
 
-        for (let i = 0; i < 2; i++) {
-            previousPosition = position;
-            position = _goOneStepForward(_, position);
+        // No boundary effect.
+        if (backwardPosition != position) {
+            const functionName = '_goOneStep' + direction;
+            position = eval(`${functionName}(_, backwardPosition)`);
 
-            if (position == previousPosition) {
-                return [];
+            // No boundary effect.
+            if (position != backwardPosition) {
+                moves.push(position);
             }
         }
 
-        position = _goOneStepLeft(_, position);
+        backwardPosition = _goOneStepBackward(_, initialPosition);
 
-        return position == previousPosition ? [] : [position];
-    }
+        // No boundary effect.
+        if (backwardPosition != initialPosition) {
+            position = _goTwoSteps(_, backwardPosition, direction);
 
-    function _getKnightLeftForwardMove2(_, position) {
-        let previousPosition = position;
-
-        position = _goOneStepForward(_, position);
-
-        if (position == previousPosition) {
-            return [];
-        }
-
-        for (let i = 0; i < 2; i++) {
-            previousPosition = position;
-            position = _goOneStepLeft(_, position);
-
-            if (position == previousPosition) {
-                return [];
+            // No boundary effect.
+            if (position != backwardPosition) {
+                moves.push(position);
             }
         }
 
-        return [position];
-    }
-
-    function _getKnightLeftBackwardMoves(_, position) {
+        return moves;
     }
 
 
@@ -437,16 +444,21 @@ const Chess = (function() {
 
         getKnightMoves: function(position) {
             let moves = [];
-            //return _getKnightLeftForwardMove1(this._, position);
-            moves = _getKnightRightForwardMove2(this._, position);
+
+            moves = moves.concat(_getKnightForwardMoves(this._, position, 'Left'),
+                                 _getKnightForwardMoves(this._, position, 'Right'),
+                                 _getKnightBackwardMoves(this._, position, 'Left'),
+                                 _getKnightBackwardMoves(this._, position, 'Right')
+            );
 
             for (let i = 0; i < moves.length; i++) {
                 let square = _getSquare(this._, moves[i]);
 
                 // The square is occupied by a friend piece.
                 if (square.charAt(1) == this._(_key).turn) {
+                    console.log(square + moves[i]);
                     // The knight can't move here.
-                    moves.pop();
+                    moves.splice(i, 1);
                 }
             }
 
@@ -472,7 +484,7 @@ const Chess = (function() {
                 // There is an opponent piece.
                 if (_getSquare(this._, moves[i])) {
                     // The pawn can't go there.
-                    moves.pop();
+                    moves.splice(i, 1);
                 }
             }
 
