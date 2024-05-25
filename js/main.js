@@ -3,17 +3,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const chess = new Chess.init();
 
-    chess.setMove('Nb1d4');
+    chess.setMove('Nb1d5');
     //console.log(chess.getPawnMoves('e2'));
     createChessboard(chess);
 
-    document.querySelectorAll('.piece').forEach((piece) => {
-        piece.addEventListener('click', (e) => {
+    document.querySelectorAll('.square').forEach((square) => {
+        square.addEventListener('click', (e) => {
+
+            // An empty square has been clicked.
+            if (e.target.classList.contains('square')) {
+                const position = e.target.id;
+                console.log('square');
+
+                const from = chess.getMoveFrom();
+
+                if (Object.keys(from).length !== 0) {
+
+                }
+
+                hideMoves(chess);
+            }
+            // A piece has been clicked.
+            else {
+                hideMoves(chess);
+                const position = e.target.parentElement.id;
+                const pieceType = e.target.dataset.piece;
+                console.log('piece: ' + position);
+
+                const from = chess.getMoveFrom();
+
+                // The piece is selected.
+                if (Object.keys(from).length === 0) {
+                    const moves = getPieceMoves(chess, pieceType.charAt(0), position);
+                    console.log(moves);
+                    showMoves(chess, moves);
+                }
+                // The piece is captured.
+                else {
+
+                }
+            }
+            
             const coordinates = e.target.parentElement.id;
             const pieceType = e.target.dataset.piece;
 
-            if (pieceType.charAt(1) == chess.getTurn()) {
-                console.log(coordinates + ' ' + pieceType);
+            /*if (pieceType.charAt(1) == chess.getTurn()) {
                 let moves = [];
                 switch (pieceType.charAt(0)) {
                     case 'K':
@@ -40,8 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         moves = chess.getPawnMoves(coordinates);
                         break;
                 }
-                console.log(moves);
-            }
+
+                //showMoves(chess, moves);
+            }*/
         });
     });
 
@@ -91,3 +126,51 @@ function createChessboard(chess) {
     }
 }
 
+function getPieceMoves(chess, pieceType, position) {
+    let moves = [];
+
+    switch (pieceType) {
+        case 'K':
+            moves = chess.getKingMoves(position);
+            break;
+
+        case 'Q':
+            moves = chess.getQueenMoves(position);
+            break;
+
+        case 'B':
+            moves = chess.getBishopMoves(position);
+            break;
+
+        case 'N':
+            moves = chess.getKnightMoves(position);
+            break;
+
+        case 'R':
+            moves = chess.getRookMoves(position);
+            break;
+
+        case 'P':
+            moves = chess.getPawnMoves(position);
+            break;
+    }
+
+    return moves;
+}
+
+function showMoves(chess, moves) {
+    moves.forEach((move) => {
+        console.log(move);
+        //const square = chess.getChessboard()[move.charAt(1)][move.charAt(0)];
+        console.log(chess.getSquare(move));
+        document.getElementById(move).classList.add('move');
+    });
+}
+
+function hideMoves(chess) {
+    document.querySelectorAll('.move').forEach((square) => {
+        square.classList.remove('move');
+        //console.log(square);
+    });
+
+}

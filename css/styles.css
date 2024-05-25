@@ -44,6 +44,10 @@
   /*background-color: #b5915f;*/ /* beige */
 }
 
+.move {
+  background-color: red !important; 
+}
+
 .piece {
   width: 100%;
   height: 100%;

@@ -35,12 +35,10 @@ const Chess = (function() {
             ['Pw', 'Pw', 'Pw', 'Pw', 'Pw', 'Pw', 'Pw', 'Pw'],
             ['Rw', 'Nw', 'Bw', 'Qw', 'Kw', 'Bw', 'Nw', 'Rw'],
         ];
-        //_(_key).ranks = [1, 2, 3, 4, 5, 6, 7, 8];
-        //_(_key).files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
         // Maps between the chess ranks and files and the 2 dimensional array indexes.
         _(_key).coordinates = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7,
                                '1': 7, '2': 6, '3': 5, '4': 4, '5': 3, '6': 2, '7': 1, '8': 0}
-        //_(_key).pieceAbbreviations = ['K', 'Q', 'R', 'N', 'B', 'P'];
+        //
         _(_key).move = {'from': {'rank': '', 'file': ''}, 'to': {'rank': '', 'file': ''}, 'piece': '', 'capture': false};
         // The maximum steps a piece can go on the chessboard.
         _(_key).MAX_STEPS = 7;
@@ -401,6 +399,10 @@ const Chess = (function() {
             return this._(_key).turn;
         },
 
+        getSquare: function(position) {
+            return _getSquare(this._, position);
+        },
+
         // Functions that return the all possible moves for each piece.
 
         getKingMoves: function(position) {
@@ -456,7 +458,7 @@ const Chess = (function() {
 
                 // The square is occupied by a friend piece.
                 if (square.charAt(1) == this._(_key).turn) {
-                    console.log(square + moves[i]);
+                    //console.log(square + moves[i]);
                     // The knight can't move here.
                     moves.splice(i, 1);
                 }
@@ -497,7 +499,6 @@ const Chess = (function() {
             if (!/^[A-Z]/.test(move)) {
                 move = 'P' + move;
             }
- //console.log(_goOneStepForwardPosition(this._, 'a7'));
 
             this._(_key).move.piece = move.charAt(0);
             this._(_key).move.from.file = move.slice(1, 2);
@@ -507,10 +508,44 @@ const Chess = (function() {
             this._(_key).move.to.rank = this._(_key).move.capture ? move.slice(5, 6) : move.slice(4, 5);
 
             _updateChessboard(this._);
+
+            this.resetMove();
 //console.log(move);
 //console.log(this._(_key).move);
         },
 
+        setMoveFrom: function(from) {
+            // The UCI protocol doesn't use any abbreviation for pawns.
+            if (!/^[A-Z]/.test(from)) {
+                from = 'P' + from;
+            }
+
+            this._(_key).move.piece = from.charAt(0);
+            this._(_key).move.from.file = from.slice(1, 2);
+            this._(_key).move.from.rank = from.slice(2, 3);
+        },
+
+        setMoveTo: function(to) {
+            this._(_key).move.to.file = to.charAt(0);
+            this._(_key).move.to.rank = to.charAt(1);
+
+            _updateChessboard(this._);
+
+            resetMove();
+        },
+
+        resetMove: function() {
+            this._(_key).move.piece = '';
+            this._(_key).move.from.file = '';
+            this._(_key).move.from.rank = '';
+            this._(_key).move.capture = false;
+            this._(_key).move.to.file = '';
+            this._(_key).move.to.rank = '';
+        },
+
+        getMoveFrom: function() {
+            return this._(_key).move.from.file ? {'file': this._(_key).move.from.file, 'rank': this._(_key).move.from.rank} : {};
+        },
     };
 
     // Returns a init property that returns the "constructor" function.
