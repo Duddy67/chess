@@ -3,81 +3,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const chess = new Chess.init();
 
-    chess.setMove('Nb1d5');
+    chess.setMove('Qd1d4');
     //console.log(chess.getPawnMoves('e2'));
     createChessboard(chess);
 
-    document.querySelectorAll('.square').forEach((square) => {
-        square.addEventListener('click', (e) => {
+    chess.possibleMoves = [];
 
-            // An empty square has been clicked.
-            if (e.target.classList.contains('square')) {
+    // Listen to click events coming from the chessboard.
+    document.getElementById('chessboard').addEventListener('click', (e) => {
+//console.log('chessboard');
+
+        // An empty square has been clicked.
+        if (e.target.classList.contains('square')) {
+            // Check if a piece is moving.
+            const from = chess.getMoveFrom();
+
+            // A piece has been moved from a given position to this square.
+            if (Object.keys(from).length !== 0) {
+                // Get the square position (eg: e4, b6...).
                 const position = e.target.id;
-                console.log('square');
 
-                const from = chess.getMoveFrom();
-
-                if (Object.keys(from).length !== 0) {
-
+                // First make sure the piece is allowed to go to this square.
+                if (chess.possibleMoves.includes(position)) {
+                    // Set the arrival position.
+                    chess.setMoveTo(position);
                 }
 
-                hideMoves(chess);
+//console.log(chess.getChessboard());
+createChessboard(chess);
             }
-            // A piece has been clicked.
+
+            // Reset the possibleMoves array.
+            chess.possibleMoves = [];
+            hidePossibleMoves(chess);
+        }
+
+        // A piece is clicked.
+        if (e.target.classList.contains('piece')) {
+            hidePossibleMoves(chess);
+            // Get the square position from the parent element (ie: square).
+            const position = e.target.parentElement.id;
+            const pieceType = e.target.dataset.piece.charAt(0);
+
+            // Check if a piece is moving.
+            const from = chess.getMoveFrom();
+
+            // The piece is selected.
+            if (Object.keys(from).length === 0) {
+                chess.setMoveFrom(position, pieceType);
+                chess.possibleMoves = Array.from(getPieceMoves(chess, pieceType, position));
+                showPossibleMoves(chess);
+            }
+            // The piece is captured.
             else {
-                hideMoves(chess);
-                const position = e.target.parentElement.id;
-                const pieceType = e.target.dataset.piece;
-                console.log('piece: ' + position);
-
-                const from = chess.getMoveFrom();
-
-                // The piece is selected.
-                if (Object.keys(from).length === 0) {
-                    const moves = getPieceMoves(chess, pieceType.charAt(0), position);
-                    console.log(moves);
-                    showMoves(chess, moves);
+                // First make sure the piece is allowed to go to this square.
+                if (chess.possibleMoves.includes(position)) {
+                    chess.setMoveTo(position);
+                    // Reset the possibleMoves array.
+                    chess.possibleMoves = [];
                 }
-                // The piece is captured.
-                else {
+createChessboard(chess);
 
-                }
             }
-            
-            const coordinates = e.target.parentElement.id;
-            const pieceType = e.target.dataset.piece;
-
-            /*if (pieceType.charAt(1) == chess.getTurn()) {
-                let moves = [];
-                switch (pieceType.charAt(0)) {
-                    case 'K':
-                        moves = chess.getKingMoves(coordinates);
-                        break;
-
-                    case 'Q':
-                        moves = chess.getQueenMoves(coordinates);
-                        break;
-
-                    case 'B':
-                        moves = chess.getBishopMoves(coordinates);
-                        break;
-
-                    case 'N':
-                        moves = chess.getKnightMoves(coordinates);
-                        break;
-
-                    case 'R':
-                        moves = chess.getRookMoves(coordinates);
-                        break;
-
-                    case 'P':
-                        moves = chess.getPawnMoves(coordinates);
-                        break;
-                }
-
-                //showMoves(chess, moves);
-            }*/
-        });
+        }
     });
 
 });
@@ -87,6 +75,7 @@ function createChessboard(chess) {
     const chessboard = chess.getChessboard();
     const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
     const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
+            document.getElementById('chessboard').innerHTML = '';
 
     // Loop through the 2 dimensional chessboard array.
     for (let i = 0; i < chessboard.length; i++) {
@@ -158,16 +147,15 @@ function getPieceMoves(chess, pieceType, position) {
     return moves;
 }
 
-function showMoves(chess, moves) {
-    moves.forEach((move) => {
-        console.log(move);
+function showPossibleMoves(chess) {
+    chess.possibleMoves.forEach((move) => {
         //const square = chess.getChessboard()[move.charAt(1)][move.charAt(0)];
-        console.log(chess.getSquare(move));
+        //console.log(chess.getSquare(move));
         document.getElementById(move).classList.add('move');
     });
 }
 
-function hideMoves(chess) {
+function hidePossibleMoves(chess) {
     document.querySelectorAll('.move').forEach((square) => {
         square.classList.remove('move');
         //console.log(square);

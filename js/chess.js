@@ -510,19 +510,12 @@ const Chess = (function() {
             _updateChessboard(this._);
 
             this.resetMove();
-//console.log(move);
-//console.log(this._(_key).move);
         },
 
-        setMoveFrom: function(from) {
-            // The UCI protocol doesn't use any abbreviation for pawns.
-            if (!/^[A-Z]/.test(from)) {
-                from = 'P' + from;
-            }
-
-            this._(_key).move.piece = from.charAt(0);
-            this._(_key).move.from.file = from.slice(1, 2);
-            this._(_key).move.from.rank = from.slice(2, 3);
+        setMoveFrom: function(from, piece) {
+            this._(_key).move.piece = piece;
+            this._(_key).move.from.file = from.charAt(0);
+            this._(_key).move.from.rank = from.charAt(1);
         },
 
         setMoveTo: function(to) {
@@ -531,7 +524,8 @@ const Chess = (function() {
 
             _updateChessboard(this._);
 
-            resetMove();
+            this.resetMove();
+//console.log(this._(_key).move);
         },
 
         resetMove: function() {
