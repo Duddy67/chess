@@ -507,9 +507,7 @@ const Chess = (function() {
             this._(_key).move.to.file = this._(_key).move.capture ? move.slice(4, 5) : move.slice(3, 4);
             this._(_key).move.to.rank = this._(_key).move.capture ? move.slice(5, 6) : move.slice(4, 5);
 
-            _updateChessboard(this._);
-
-            this.resetMove();
+            //_updateChessboard(this._);
         },
 
         setMoveFrom: function(from, piece) {
@@ -522,9 +520,8 @@ const Chess = (function() {
             this._(_key).move.to.file = to.charAt(0);
             this._(_key).move.to.rank = to.charAt(1);
 
-            _updateChessboard(this._);
+            //_updateChessboard(this._);
 
-            this.resetMove();
 //console.log(this._(_key).move);
         },
 
@@ -539,6 +536,21 @@ const Chess = (function() {
 
         getMoveFrom: function() {
             return this._(_key).move.from.file ? {'file': this._(_key).move.from.file, 'rank': this._(_key).move.from.rank} : {};
+        },
+
+        getMoveTo: function() {
+            return this._(_key).move.to.file ? {'file': this._(_key).move.to.file, 'rank': this._(_key).move.to.rank} : {};
+        },
+
+        updateChessboard: function() {
+            const coordinates = this._(_key).coordinates;
+            const move = this._(_key).move;
+            // Get the piece color (ie: the second letter of the string). 
+            const color = this._(_key).chessboard[coordinates[move.from.rank]][coordinates[move.from.file]].slice(1, 2);
+
+            // Update the piece position on the chessboard.
+            this._(_key).chessboard[coordinates[move.from.rank]][coordinates[move.from.file]] = '';
+            this._(_key).chessboard[coordinates[move.to.rank]][coordinates[move.to.file]] = move.piece + color;
         },
     };
 

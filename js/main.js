@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const chess = new Chess.init();
 
     chess.setMove('Qd1d4');
+    chess.updateChessboard();
+    chess.resetMove();
     //console.log(chess.getPawnMoves('e2'));
     createChessboard(chess);
 
@@ -27,10 +29,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (chess.possibleMoves.includes(position)) {
                     // Set the arrival position.
                     chess.setMoveTo(position);
+                    chess.updateChessboard();
+                    movePiece(chess);
+                    chess.resetMove();
+                }
+                else {
+                    // The piece is not allowed to go to this square.
+                    chess.resetMove();
                 }
 
-//console.log(chess.getChessboard());
-createChessboard(chess);
             }
 
             // Reset the possibleMoves array.
@@ -47,6 +54,7 @@ createChessboard(chess);
 
             // Check if a piece is moving.
             const from = chess.getMoveFrom();
+console.log('from ' + from.rank);
 
             // The piece is selected.
             if (Object.keys(from).length === 0) {
@@ -59,10 +67,12 @@ createChessboard(chess);
                 // First make sure the piece is allowed to go to this square.
                 if (chess.possibleMoves.includes(position)) {
                     chess.setMoveTo(position);
+                    chess.updateChessboard();
+                    movePiece(chess);
+                    chess.resetMove();
                     // Reset the possibleMoves array.
                     chess.possibleMoves = [];
                 }
-createChessboard(chess);
 
             }
         }
@@ -75,7 +85,6 @@ function createChessboard(chess) {
     const chessboard = chess.getChessboard();
     const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
     const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
-            document.getElementById('chessboard').innerHTML = '';
 
     // Loop through the 2 dimensional chessboard array.
     for (let i = 0; i < chessboard.length; i++) {
@@ -145,6 +154,31 @@ function getPieceMoves(chess, pieceType, position) {
     }
 
     return moves;
+}
+
+/*
+ * Moves a piece to a given position. Removes a captured piece if any.
+ */
+function movePiece(chess) {
+    // Get the move to play.
+    const from = chess.getMoveFrom().file + chess.getMoveFrom().rank;
+    const to = chess.getMoveTo().file + chess.getMoveTo().rank;
+
+    const fromSquare = document.getElementById(from);
+    // Get the piece to move and remove it from the square.
+    const piece = fromSquare.firstChild;
+    fromSquare.removeChild(fromSquare.firstElementChild);
+
+    const toSquare = document.getElementById(to);
+
+    // A piece is captured.
+    if (toSquare.hasChildNodes()) {
+        // Remove the captured piece.
+        toSquare.innerHTML = '';
+    }
+
+    // Put the piece on the destination square.
+    toSquare.appendChild(piece);
 }
 
 function showPossibleMoves(chess) {
