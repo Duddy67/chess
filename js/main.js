@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Listen to click events coming from the chessboard.
     document.getElementById('chessboard').addEventListener('click', (e) => {
-//console.log('chessboard');
+console.log('chessboard');
 
         // An empty square has been clicked.
         if (e.target.classList.contains('square')) {
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const from = chess.getMoveFrom();
 
             // A piece has been moved from a given position to this square.
-            if (Object.keys(from).length !== 0) {
+            if (chess.isObjectNotEmpty(from)) {
                 // Get the square position (eg: e4, b6...).
                 const position = e.target.id;
 
@@ -51,19 +51,35 @@ document.addEventListener('DOMContentLoaded', () => {
             // Get the square position from the parent element (ie: square).
             const position = e.target.parentElement.id;
             const pieceType = e.target.dataset.piece.charAt(0);
+            const pieceSide = e.target.dataset.piece.charAt(1);
 
             // Check if a piece is moving.
             const from = chess.getMoveFrom();
-console.log('from ' + from.rank);
 
-            // The piece is selected.
-            if (Object.keys(from).length === 0) {
+            // The piece is selected, (the from object is empty).
+            if (chess.isObjectEmpty(from) && chess.whoseTurnIsIt() == pieceSide) {
                 chess.setMoveFrom(position, pieceType);
-                chess.possibleMoves = Array.from(getPieceMoves(chess, pieceType, position));
-                showPossibleMoves(chess);
+                // Clone the array returned by the getPieceMoves function.
+                chess.possibleMoves = [...getPieceMoves(chess, pieceType, position)];
+
+                // Check the piece can move to one or more squares.
+                if (chess.possibleMoves.length) {
+                    showPossibleMoves(chess);
+                }
+                // The piece can't go anywhere.
+                else {
+                    chess.resetMove();
+                }
+            }
+            // The piece is unselected or another piece on the same side is clicked.
+            else if (chess.isObjectNotEmpty(from) && chess.whoseTurnIsIt() == pieceSide) {
+//console.log('side ' + pieceSide + ' position' + position + ' wose turn ' + chess.whoseTurnIsIt());
+                chess.resetMove();
+                chess.possibleMoves = [];
+
             }
             // The piece is captured.
-            else {
+            else if (chess.isObjectNotEmpty(from) && chess.whoseTurnIsIt() != pieceSide) {
                 // First make sure the piece is allowed to go to this square.
                 if (chess.possibleMoves.includes(position)) {
                     chess.setMoveTo(position);
@@ -73,7 +89,6 @@ console.log('from ' + from.rank);
                     // Reset the possibleMoves array.
                     chess.possibleMoves = [];
                 }
-
             }
         }
     });

@@ -24,7 +24,7 @@ const Chess = (function() {
     // Private functions.
 
     function _initProperties(_) {
-        _(_key).turn = 'w'; 
+        _(_key).side = 'w'; 
         _(_key).chessboard = [
             ['Rb', 'Nb', 'Bb', 'Qb', 'Kb', 'Bb', 'Nb', 'Rb'],
             ['Pb', 'Pb', 'Pb', 'Pb', 'Pb', 'Pb', 'Pb', 'Pb'],
@@ -67,6 +67,14 @@ const Chess = (function() {
         return _(_key).chessboard[_(_key).coordinates[rank]][_(_key).coordinates[file]];
     }
 
+    function _switchSides(_) {
+        _(_key).side = _(_key).side == 'w' ? 'b' : 'w';
+    }
+
+    function _whoseTurnIsIt(_) {
+        return _(_key).side;
+    }
+
     /*
      * Returns the coordinates of a step forward went from a given position.
      * If a boundary effect is detected, the given position is returned.
@@ -76,7 +84,7 @@ const Chess = (function() {
         let rank = position.charAt(1);
 
         // One step forward from the white viewpoint.
-        if (_(_key).turn == 'w') {
+        if (_(_key).side == 'w') {
             // Check for boundary effect.
             rank = parseInt(rank) < _(_key).MAX_SQUARES ? parseInt(rank) + 1 : rank;
         }
@@ -98,7 +106,7 @@ const Chess = (function() {
         let rank = position.charAt(1);
 
         // One step backward from the white viewpoint.
-        if (_(_key).turn == 'w') {
+        if (_(_key).side == 'w') {
             // Check for boundary effect.
             rank = parseInt(rank) > 1 ? parseInt(rank) - 1 : rank;
         }
@@ -120,7 +128,7 @@ const Chess = (function() {
         let file = position.charAt(0);
 
         // One step right from the white viewpoint.
-        if (_(_key).turn == 'w') {
+        if (_(_key).side == 'w') {
             // Check for boundary effect.
             file = file.localeCompare('h') === -1 ? String.fromCharCode(file.charCodeAt(0) + 1) : file;
         }
@@ -142,7 +150,7 @@ const Chess = (function() {
         let file = position.charAt(0);
 
         // One step left from the white viewpoint.
-        if (_(_key).turn == 'w') {
+        if (_(_key).side == 'w') {
             // Check for boundary effect.
             file = file.localeCompare('a') === 1 ? String.fromCharCode(file.charCodeAt(0) - 1) : file;
         }
@@ -264,7 +272,7 @@ const Chess = (function() {
             let square = _getSquare(_, position);
 
             // The position hasn't changed (ie: boundary effect), or the square is occupied by a friend piece.
-            if (position == previousPosition || square.charAt(1) == _(_key).turn) {
+            if (position == previousPosition || square.charAt(1) == _(_key).side) {
                 // The piece can't move here.
                 break;
             }
@@ -272,7 +280,7 @@ const Chess = (function() {
             moves.push(position);
 
             // The square is occupied by an opponent piece (that can possibly be captured). 
-            if (square && square.charAt(1) != _(_key).turn) {
+            if (square && square.charAt(1) != _(_key).side) {
                 // The piece can't go further.
                 break;    
             }
@@ -395,8 +403,8 @@ const Chess = (function() {
             return this._(_key).chessboard;
         },
 
-        getTurn: function() {
-            return this._(_key).turn;
+        whoseTurnIsIt: function() {
+            return _whoseTurnIsIt(this._);
         },
 
         getSquare: function(position) {
@@ -457,7 +465,7 @@ const Chess = (function() {
                 let square = _getSquare(this._, moves[i]);
 
                 // The square is occupied by a friend piece.
-                if (square.charAt(1) == this._(_key).turn) {
+                if (square.charAt(1) == this._(_key).side) {
                     //console.log(square + moves[i]);
                     // The knight can't move here.
                     moves.splice(i, 1);
@@ -479,7 +487,7 @@ const Chess = (function() {
 
         getPawnMoves: function(position) {
             // Check the number of steps allowed (ie: 2 or 1) according to the pawn rank position.
-            let steps = (this._(_key).turn == 'w' && position.charAt(1) == 2) || (this._(_key).turn == 'b' && position.charAt(1) == 7) ? 2 : 1;
+            let steps = (this._(_key).side == 'w' && position.charAt(1) == 2) || (this._(_key).side == 'b' && position.charAt(1) == 7) ? 2 : 1;
             let moves = _getForwardMoves(this._, position, steps);
 
             for (let i = 0; i < moves.length; i++) {
@@ -525,6 +533,9 @@ const Chess = (function() {
 //console.log(this._(_key).move);
         },
 
+        /*
+         * Empties the move object.
+         */
         resetMove: function() {
             this._(_key).move.piece = '';
             this._(_key).move.from.file = '';
@@ -542,6 +553,17 @@ const Chess = (function() {
             return this._(_key).move.to.file ? {'file': this._(_key).move.to.file, 'rank': this._(_key).move.to.rank} : {};
         },
 
+        playMove: function(moveTo) {
+            this._(_key).move.to.file = moveTo.charAt(0);
+            this._(_key).move.to.rank = moveTo.charAt(1);
+
+            _updateChessboard(this._);
+
+            this.resetMove();
+
+            _switchSides(this._);
+        },
+
         updateChessboard: function() {
             const coordinates = this._(_key).coordinates;
             const move = this._(_key).move;
@@ -551,6 +573,14 @@ const Chess = (function() {
             // Update the piece position on the chessboard.
             this._(_key).chessboard[coordinates[move.from.rank]][coordinates[move.from.file]] = '';
             this._(_key).chessboard[coordinates[move.to.rank]][coordinates[move.to.file]] = move.piece + color;
+        },
+
+        isObjectEmpty: function(value) {
+            return value && Object.keys(value).length === 0;
+        },
+
+        isObjectNotEmpty: function(value) {
+            return value && Object.keys(value).length !== 0;
         },
     };
 
