@@ -40,6 +40,7 @@ const Chess = (function() {
                                '1': 7, '2': 6, '3': 5, '4': 4, '5': 3, '6': 2, '7': 1, '8': 0}
         //
         _(_key).move = {'from': {'rank': '', 'file': ''}, 'to': {'rank': '', 'file': ''}, 'piece': '', 'capture': false};
+        _(_key).history = [];
         // The maximum steps a piece can go on the chessboard.
         _(_key).MAX_STEPS = 7;
         // The maximum number of squares a rank, a file or a diagonal can have.
@@ -73,6 +74,9 @@ const Chess = (function() {
 
     function _whoseTurnIsIt(_) {
         return _(_key).side;
+    }
+
+    function _setHistory(_) {
     }
 
     /*
@@ -193,6 +197,9 @@ const Chess = (function() {
         // Get the number of steps according to the given 'steps' parameter.
         steps = steps === undefined ? _(_key).MAX_STEPS : steps;
         let moves = [];
+        // Temporary variables needed for diagonals.
+        let forward = '';
+        let backward = '';
 
         // Loop through each step.
         for (let i = 0; i < steps; i++) {
@@ -225,8 +232,16 @@ const Chess = (function() {
                         break
                     }
 
+                    forward = position;
+
                     // Then go one step right to get the diagonal direction.
                     position = _goOneStepRight(_, position);
+
+                    // Check again for boundary effect.
+                    if (position == forward) {
+                        position = previousPosition;
+                    }
+
                     break;
 
                 case 'left-diagonal-forward':
@@ -238,8 +253,16 @@ const Chess = (function() {
                         break
                     }
 
+                    forward = position;
+
                     // Then go one step left to get the diagonal direction.
                     position = _goOneStepLeft(_, position);
+
+                    // Check again for boundary effect.
+                    if (position == forward) {
+                        position = previousPosition;
+                    }
+
                     break;
 
                 case 'right-diagonal-backward':
@@ -251,8 +274,16 @@ const Chess = (function() {
                         break
                     }
 
+                    backward = position;
+
                     // Then go one step right to get the diagonal direction.
                     position = _goOneStepRight(_, position);
+
+                    // Check again for boundary effect.
+                    if (position == backward) {
+                        position = previousPosition;
+                    }
+
                     break;
 
                 case 'left-diagonal-backward':
@@ -264,8 +295,16 @@ const Chess = (function() {
                         break
                     }
 
+                    backward = position;
+
                     // Then go one step left to get the diagonal direction.
                     position = _goOneStepLeft(_, position);
+
+                    // Check again for boundary effect.
+                    if (position == backward) {
+                        position = previousPosition;
+                    }
+
                     break;
             }
 
@@ -501,7 +540,7 @@ const Chess = (function() {
             return moves;
         },
 
-        setMove: function(move) {
+        /*setMove: function(move) {
 
             // The UCI protocol doesn't use any abbreviation for pawns.
             if (!/^[A-Z]/.test(move)) {
@@ -516,21 +555,12 @@ const Chess = (function() {
             this._(_key).move.to.rank = this._(_key).move.capture ? move.slice(5, 6) : move.slice(4, 5);
 
             //_updateChessboard(this._);
-        },
+        },*/
 
         setMoveFrom: function(from, piece) {
             this._(_key).move.piece = piece;
             this._(_key).move.from.file = from.charAt(0);
             this._(_key).move.from.rank = from.charAt(1);
-        },
-
-        setMoveTo: function(to) {
-            this._(_key).move.to.file = to.charAt(0);
-            this._(_key).move.to.rank = to.charAt(1);
-
-            //_updateChessboard(this._);
-
-//console.log(this._(_key).move);
         },
 
         /*
@@ -547,10 +577,6 @@ const Chess = (function() {
 
         getMoveFrom: function() {
             return this._(_key).move.from.file ? {'file': this._(_key).move.from.file, 'rank': this._(_key).move.from.rank} : {};
-        },
-
-        getMoveTo: function() {
-            return this._(_key).move.to.file ? {'file': this._(_key).move.to.file, 'rank': this._(_key).move.to.rank} : {};
         },
 
         playMove: function(moveTo) {
