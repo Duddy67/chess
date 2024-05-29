@@ -3,7 +3,7 @@
   width: min(80vh, 80vw);
   height: min(80vh, 80vw);
   background-color: #7d694c;
-  margin-left: auto;
+  /*margin-left: auto;*/
   margin-right: auto;
   padding-top: 1%;
   padding-bottom: 1%;
@@ -144,5 +144,25 @@
 
 .rank-8 {
   background-image: url("../images/8.png");
+}
+
+.moves {
+  height: 80px;
+  width: 100%;
+  overflow: auto;
+  display: inline-block;          
+}
+
+.moves td {
+  width: 200px;
+}
+/*tbody {
+  display:block;
+  max-height:50px;
+  overflow-y:auto;
+}*/
+
+.information {
+   margin-right: 5%;
 }
 

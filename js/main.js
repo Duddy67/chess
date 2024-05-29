@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const from = chess.getMoveFrom();
                     chess.playMove(position);
                     movePiece(from.file + from.rank, position);
+console.log(chess.getHistory());
+                    updateHistory(chess);
                 }
                 else {
                     // The piece is not allowed to go to this square.
@@ -81,6 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     movePiece(from.file + from.rank, position);
                     // Reset the possibleMoves array.
                     chess.possibleMoves = [];
+console.log(chess.getHistory());
+                    updateHistory(chess);
                 }
                 // The moving piece can't go here.
                 else {
@@ -188,6 +192,23 @@ function movePiece(from, to) {
 
     // Put the piece on the destination square.
     toSquare.appendChild(piece);
+}
+
+function updateHistory(chess) {
+    const history = chess.getHistory();
+
+    let tr = document.createElement('tr');
+    let td = document.createElement('td');
+
+    if (chess.whoseTurnIsIt() == 'w') {
+        td.setAttribute('class', 'text-end');
+    }
+
+    const latestMove = document.createTextNode(history[history.length - 1]);
+    td.appendChild(latestMove);
+    tr.appendChild(td);
+    const body = document.getElementById('history').getElementsByTagName('tbody')[0];
+    body.appendChild(tr);
 }
 
 function showPossibleMoves(chess) {

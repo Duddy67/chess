@@ -77,6 +77,9 @@ const Chess = (function() {
     }
 
     function _setHistory(_) {
+        const move = _(_key).move;
+        const capture = move.capture === true ? 'x' : '';
+        _(_key).history.push(move.piece + move.from.file + move.from.rank + capture + move.to.file + move.to.rank);
     }
 
     /*
@@ -583,7 +586,13 @@ const Chess = (function() {
             this._(_key).move.to.file = moveTo.charAt(0);
             this._(_key).move.to.rank = moveTo.charAt(1);
 
+            if (_getSquare(this._, moveTo.charAt(0) + moveTo.charAt(1))) {
+                this._(_key).move.capture = true;
+            }
+
             _updateChessboard(this._);
+
+            _setHistory(this._);
 
             this.resetMove();
 
@@ -599,6 +608,10 @@ const Chess = (function() {
             // Update the piece position on the chessboard.
             this._(_key).chessboard[coordinates[move.from.rank]][coordinates[move.from.file]] = '';
             this._(_key).chessboard[coordinates[move.to.rank]][coordinates[move.to.file]] = move.piece + color;
+        },
+
+        getHistory: function() {
+           return this._(_key).history;
         },
 
         isObjectEmpty: function(value) {
