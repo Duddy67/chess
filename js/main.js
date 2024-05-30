@@ -29,7 +29,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const from = chess.getMoveFrom();
                     chess.playMove(position);
                     movePiece(from.file + from.rank, position);
-console.log(chess.getHistory());
                     updateHistory(chess);
                 }
                 else {
@@ -83,7 +82,6 @@ console.log(chess.getHistory());
                     movePiece(from.file + from.rank, position);
                     // Reset the possibleMoves array.
                     chess.possibleMoves = [];
-console.log(chess.getHistory());
                     updateHistory(chess);
                 }
                 // The moving piece can't go here.

@@ -532,6 +532,7 @@ const Chess = (function() {
             let steps = (this._(_key).side == 'w' && position.charAt(1) == 2) || (this._(_key).side == 'b' && position.charAt(1) == 7) ? 2 : 1;
             let moves = _getForwardMoves(this._, position, steps);
 
+            // Check for any opponent piece in the way.
             for (let i = 0; i < moves.length; i++) {
                 // There is an opponent piece.
                 if (_getSquare(this._, moves[i])) {
@@ -539,6 +540,26 @@ const Chess = (function() {
                     moves.splice(i, 1);
                 }
             }
+
+            // Check for possible opponent pieces to capture diagonally.
+
+            const forward = _goOneStepForward(this._, position);
+
+            if (forward != position) {
+                position = _goOneStepRight(this._, forward);
+
+                if (position != forward && _getSquare(this._, position)) {
+                    moves.push(position);
+                }
+
+                position = _goOneStepLeft(this._, forward);
+
+                if (position != forward && _getSquare(this._, position)) {
+                    moves.push(position);
+                }
+            }
+
+            // TODO Check for "en passant"
 
             return moves;
         },
