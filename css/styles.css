@@ -146,21 +146,16 @@
   background-image: url("../images/8.png");
 }
 
-.moves {
-  height: 80px;
+.table-wrapper {
+  max-height: 150px;
   width: 100%;
   overflow: auto;
-  display: inline-block;          
+  display:inline-block;
 }
 
-.moves td {
-  width: 200px;
+.move-history:hover {
+  cursor: grab;
 }
-/*tbody {
-  display:block;
-  max-height:50px;
-  overflow-y:auto;
-}*/
 
 .information {
    margin-right: 5%;

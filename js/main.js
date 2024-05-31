@@ -93,6 +93,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    document.getElementById('history').addEventListener('click', (e) => {
+        if (e.target.classList.contains('move-history')) {
+            const move = e.target.dataset.move;
+            console.log('move: ' + move);
+        }
+    });
+
 });
 
 
@@ -196,15 +203,22 @@ function updateHistory(chess) {
     const history = chess.getHistory();
 
     let tr = document.createElement('tr');
-    let td = document.createElement('td');
+    let tdIndex = document.createElement('td');
+    let tdMove = document.createElement('td');
+    tdMove.setAttribute('class', 'move-history');
+    tdMove.setAttribute('data-move', history[history.length - 1]);
+    tdMove.setAttribute('data-move-number', chess.getHistory().length);
 
     if (chess.whoseTurnIsIt() == 'w') {
-        td.setAttribute('class', 'text-end');
+        tdMove.classList.add('text-end');
     }
 
+    const index = document.createTextNode(chess.getHistory().length);
+    tdIndex.appendChild(index);
     const latestMove = document.createTextNode(history[history.length - 1]);
-    td.appendChild(latestMove);
-    tr.appendChild(td);
+    tdMove.appendChild(latestMove);
+    tr.appendChild(tdIndex);
+    tr.appendChild(tdMove);
     const body = document.getElementById('history').getElementsByTagName('tbody')[0];
     body.appendChild(tr);
 }
