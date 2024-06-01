@@ -24,7 +24,9 @@ const Chess = (function() {
     // Private functions.
 
     function _initProperties(_) {
+        // Used to determine whose turn is it (white or black). Starts with white.
         _(_key).side = 'w'; 
+        // A 2 dimensional array which stores the piece positions on the chessboard.
         _(_key).chessboard = [
             ['Rb', 'Nb', 'Bb', 'Qb', 'Kb', 'Bb', 'Nb', 'Rb'],
             ['Pb', 'Pb', 'Pb', 'Pb', 'Pb', 'Pb', 'Pb', 'Pb'],
@@ -38,9 +40,10 @@ const Chess = (function() {
         // Maps between the chess ranks and files and the 2 dimensional array indexes.
         _(_key).coordinates = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7,
                                '1': 7, '2': 6, '3': 5, '4': 4, '5': 3, '6': 2, '7': 1, '8': 0}
-        //
+        // The move object that stores the starting and ending positions of a piece plus extra data regarding the move. 
         _(_key).move = {'from': {'rank': '', 'file': ''}, 'to': {'rank': '', 'file': ''}, 'piece': '', 'capture': false};
         _(_key).history = [];
+        _(_key).isPawnPromoted = false;
         // The maximum steps a piece can go on the chessboard.
         _(_key).MAX_STEPS = 7;
         // The maximum number of squares a rank, a file or a diagonal can have.
@@ -79,7 +82,13 @@ const Chess = (function() {
     function _setHistory(_) {
         const move = _(_key).move;
         const capture = move.capture === true ? 'x' : '';
-        _(_key).history.push(move.piece + move.from.file + move.from.rank + capture + move.to.file + move.to.rank);
+        // Store the current move as well as the current state of the chessboard.
+        const history = { 
+            'move': move.piece + move.from.file + move.from.rank + capture + move.to.file + move.to.rank,
+            'chessboard':  _(_key).chessboard
+        };
+        
+        _(_key).history.push(history);
     }
 
     /*
@@ -559,7 +568,24 @@ const Chess = (function() {
                 }
             }
 
-            // TODO Check for "en passant"
+            // Check for pawn promotion.
+            if (moves.length) {
+                moves.forEach((move) => {
+                    // A white pawn can move up somewhere to the 8th rank.
+                    if (this._(_key).side == 'w' && /[a-h]8/.test(move)) {
+                        this._(_key).isPawnPromoted = true;
+                console.log('promotion white');
+                    }
+
+                    // A black pawn can move down somewhere to the first rank.
+                    if (this._(_key).side == 'b' && /[a-h]1/.test(move)) {
+                        this._(_key).isPawnPromoted = true;
+                console.log('promotion black');
+                    }
+                });
+            }
+
+            // TODO Check for the "en passant" move.
 
             return moves;
         },
@@ -597,6 +623,8 @@ const Chess = (function() {
             this._(_key).move.capture = false;
             this._(_key).move.to.file = '';
             this._(_key).move.to.rank = '';
+
+            this._(_key).isPawnPromoted = false;
         },
 
         getMoveFrom: function() {
@@ -614,7 +642,6 @@ const Chess = (function() {
             _updateChessboard(this._);
 
             _setHistory(this._);
-
             this.resetMove();
 
             _switchSides(this._);
@@ -629,6 +656,10 @@ const Chess = (function() {
             // Update the piece position on the chessboard.
             this._(_key).chessboard[coordinates[move.from.rank]][coordinates[move.from.file]] = '';
             this._(_key).chessboard[coordinates[move.to.rank]][coordinates[move.to.file]] = move.piece + color;
+        },
+
+        isPawnPromoted: function() {
+           return this._(_key).isPawnPromoted;
         },
 
         getHistory: function() {
@@ -648,7 +679,6 @@ const Chess = (function() {
     return {
         init: _Chess
     }
-
 })();
 
 

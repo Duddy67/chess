@@ -93,10 +93,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    document.getElementById('chessboard').addEventListener('mouseover', (e) => {
+
+        if (chess.isPawnPromoted()) {
+            let position = '';
+
+            if (e.target.classList.contains('square')) {
+                position = e.target.id;
+            }
+
+            if (e.target.classList.contains('piece')) {
+                position = e.target.parentElement.id;
+            }
+
+            // 
+            if (chess.possibleMoves.includes(position)) {
+                console.log('mouseover ' + position);
+            }
+        }
+
+    });
+
     document.getElementById('history').addEventListener('click', (e) => {
         if (e.target.classList.contains('move-history')) {
-            const move = e.target.dataset.move;
-            console.log('move: ' + move);
+            const moveNumber = e.target.dataset.moveNumber;
+            const history = chess.getHistory();
+            console.log(history[moveNumber - 1]);
         }
     });
 
@@ -201,12 +223,11 @@ function movePiece(from, to) {
 
 function updateHistory(chess) {
     const history = chess.getHistory();
-
     let tr = document.createElement('tr');
     let tdIndex = document.createElement('td');
     let tdMove = document.createElement('td');
     tdMove.setAttribute('class', 'move-history');
-    tdMove.setAttribute('data-move', history[history.length - 1]);
+    tdMove.setAttribute('data-move', history[history.length - 1].move);
     tdMove.setAttribute('data-move-number', chess.getHistory().length);
 
     if (chess.whoseTurnIsIt() == 'w') {
@@ -215,12 +236,16 @@ function updateHistory(chess) {
 
     const index = document.createTextNode(chess.getHistory().length);
     tdIndex.appendChild(index);
-    const latestMove = document.createTextNode(history[history.length - 1]);
+    const latestMove = document.createTextNode(history[history.length - 1].move);
     tdMove.appendChild(latestMove);
     tr.appendChild(tdIndex);
     tr.appendChild(tdMove);
     const body = document.getElementById('history').getElementsByTagName('tbody')[0];
     body.appendChild(tr);
+
+    // Scroll to the bottom of the div.
+    const wrapper = document.getElementById('history-wrapper');
+    wrapper.scrollTop = wrapper.scrollHeight;
 }
 
 function showPossibleMoves(chess) {
