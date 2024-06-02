@@ -623,7 +623,7 @@ const Chess = (function() {
             this._(_key).move.capture = false;
             this._(_key).move.to.file = '';
             this._(_key).move.to.rank = '';
-
+            // 
             this._(_key).isPawnPromoted = false;
         },
 
@@ -631,12 +631,18 @@ const Chess = (function() {
             return this._(_key).move.from.file ? {'file': this._(_key).move.from.file, 'rank': this._(_key).move.from.rank} : {};
         },
 
-        playMove: function(moveTo) {
+        playMove: function(moveTo, pawnPromotionPiece) {
             this._(_key).move.to.file = moveTo.charAt(0);
             this._(_key).move.to.rank = moveTo.charAt(1);
 
             if (_getSquare(this._, moveTo.charAt(0) + moveTo.charAt(1))) {
                 this._(_key).move.capture = true;
+            }
+
+            // Check for promoted pawn.
+            if (pawnPromotionPiece !== undefined) {
+                // Replace the promoted pawn by the selected piece.
+                this._(_key).move.piece = pawnPromotionPiece;
             }
 
             _updateChessboard(this._);

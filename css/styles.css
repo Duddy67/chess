@@ -15,6 +15,32 @@
   /*border: 1px solid gray;*/
 }
 
+.new-piece-board {
+  position: absolute;
+  display: none;
+}
+
+.piece-choice {
+  width: min(9vh, 9vw);
+  height: min(9vh, 9vw);
+  position: relative;
+  float: left;
+}
+
+.piece-choice:hover {
+  cursor: grab;
+  background-color: red; 
+}
+
+#promotionWhite {
+  display: none;
+}
+
+#promotionBlack {
+  display: none;
+}
+
+
 .square {
   display: flex;
   justify-content: center;

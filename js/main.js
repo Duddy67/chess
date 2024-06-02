@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const from = chess.getMoveFrom();
 
             // A piece has been moved from a given position to this square.
-            if (chess.isObjectNotEmpty(from)) {
+            // N.B: Promoted pawn moves are handle differently.
+            if (chess.isObjectNotEmpty(from) && !chess.isPawnPromoted()) {
                 // Get the square position (eg: e4, b6...).
                 const position = e.target.id;
 
@@ -74,7 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 chess.possibleMoves = [];
             }
             // The piece is captured.
-            else if (chess.isObjectNotEmpty(from) && chess.whoseTurnIsIt() != pieceSide) {
+            // N.B: Promoted pawn moves are handle differently.
+            else if (chess.isObjectNotEmpty(from) && chess.whoseTurnIsIt() != pieceSide && !chess.isPawnPromoted()) {
                 // First make sure the moving piece is allowed to go to this square.
                 if (chess.possibleMoves.includes(position)) {
                     const from = chess.getMoveFrom();
@@ -93,25 +95,62 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Check the mouse overs of the promoted pawns to display the new piece board.
     document.getElementById('chessboard').addEventListener('mouseover', (e) => {
 
         if (chess.isPawnPromoted()) {
             let position = '';
+            let square;
 
             if (e.target.classList.contains('square')) {
                 position = e.target.id;
+                square = e.target;
             }
 
             if (e.target.classList.contains('piece')) {
                 position = e.target.parentElement.id;
+                square = e.target.parentElement;
+                console.log('piece ' + position);
             }
 
-            // 
+            // The mouse is over squares which are part of the pawn possible moves.
+            // Show the corresponding new piece board for the player to choose from.
             if (chess.possibleMoves.includes(position)) {
                 console.log('mouseover ' + position);
+                // Adjust the top position of the board 
+                const squareHeight = square.clientHeight;
+                const top = chess.whoseTurnIsIt() == 'w' ? square.offsetTop - squareHeight : square.offsetTop + squareHeight;
+                const left = square.offsetLeft - (squareHeight * 2);
+                // Get the new piece board of the side that is currently playing.
+                const newPieceBoard = chess.whoseTurnIsIt() == 'w' ? document.getElementById('promotionWhite') : document.getElementById('promotionBlack');
+                // Show the new piece board and set its position.
+                newPieceBoard.style.display = 'block';
+                newPieceBoard.style.left = left + 'px';
+                newPieceBoard.style.top = top + 'px';
+                // Set the position where the new piece should go.
+                newPieceBoard.dataset.position = position;
             }
         }
+    });
 
+    // Check for the new piece selected by a player when a pawn is promoted.
+    document.querySelectorAll('.new-piece-board').forEach((newPieceBoard) => {
+        newPieceBoard.addEventListener('click', (e) => {
+            if (e.target.classList.contains('piece')) {
+                const pawnPromotionPiece = e.target.dataset.piece;
+                const position = e.currentTarget.dataset.position;
+                const from = chess.getMoveFrom();
+    //console.log(position + ' ' + pawnPromotionPiece);
+                movePiece(from.file + from.rank, position, pawnPromotionPiece);
+                chess.playMove(position, pawnPromotionPiece);
+       console.log(from);
+                // Reset the possibleMoves array.
+                chess.possibleMoves = [];
+                updateHistory(chess);
+                e.currentTarget.style.display = 'none';
+                hidePossibleMoves(chess);
+            }
+        });
     });
 
     document.getElementById('history').addEventListener('click', (e) => {
@@ -203,7 +242,7 @@ function getPieceMoves(chess, pieceType, position) {
 /*
  * Moves a piece to a given position. Removes a captured piece if any.
  */
-function movePiece(from, to) {
+function movePiece(from, to, pawnPromotionPiece) {
     const fromSquare = document.getElementById(from);
     // Get the piece to move and remove it from the square.
     const piece = fromSquare.firstChild;
@@ -215,6 +254,13 @@ function movePiece(from, to) {
     if (toSquare.hasChildNodes()) {
         // Remove the captured piece.
         toSquare.innerHTML = '';
+    }
+
+    // Check for promoted pawn.
+    if (pawnPromotionPiece !== undefined) {
+        // Replace the pawn with the promotion piece.
+        piece.dataset.piece = pawnPromotionPiece;
+        piece.src = 'images/' + pawnPromotionPiece + '.png';
     }
 
     // Put the piece on the destination square.
