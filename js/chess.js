@@ -458,6 +458,7 @@ const Chess = (function() {
             return _whoseTurnIsIt(this._);
         },
 
+        // Returns the square value set to a given position. 
         getSquare: function(position) {
             return _getSquare(this._, position);
         },
@@ -574,13 +575,11 @@ const Chess = (function() {
                     // A white pawn can move up somewhere to the 8th rank.
                     if (this._(_key).side == 'w' && /[a-h]8/.test(move)) {
                         this._(_key).isPawnPromoted = true;
-                console.log('promotion white');
                     }
 
                     // A black pawn can move down somewhere to the first rank.
                     if (this._(_key).side == 'b' && /[a-h]1/.test(move)) {
                         this._(_key).isPawnPromoted = true;
-                console.log('promotion black');
                     }
                 });
             }
@@ -631,7 +630,7 @@ const Chess = (function() {
             return this._(_key).move.from.file ? {'file': this._(_key).move.from.file, 'rank': this._(_key).move.from.rank} : {};
         },
 
-        playMove: function(moveTo, pawnPromotionPiece) {
+        playMove: function(moveTo, newPiece) {
             this._(_key).move.to.file = moveTo.charAt(0);
             this._(_key).move.to.rank = moveTo.charAt(1);
 
@@ -640,9 +639,9 @@ const Chess = (function() {
             }
 
             // Check for promoted pawn.
-            if (pawnPromotionPiece !== undefined) {
+            if (newPiece !== undefined) {
                 // Replace the promoted pawn by the selected piece.
-                this._(_key).move.piece = pawnPromotionPiece;
+                this._(_key).move.piece = newPiece;
             }
 
             _updateChessboard(this._);

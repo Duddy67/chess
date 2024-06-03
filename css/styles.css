@@ -20,16 +20,18 @@
   display: none;
 }
 
-.piece-choice {
+.new-piece {
   width: min(9vh, 9vw);
   height: min(9vh, 9vw);
   position: relative;
   float: left;
+  border: 1px solid #5c5c5c;
+  background-color: #dbdbdb;
 }
 
-.piece-choice:hover {
+.new-piece:hover {
   cursor: grab;
-  background-color: red; 
+  background-color: cyan; 
 }
 
 #promotionWhite {
