@@ -1,7 +1,8 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    const chess = new Chess.init();
+    //const chess = new Chess.init();
+    const chess = new Chess();
 
     //chess.setMove('Qd1d4');
     //chess.updateChessboard();
