@@ -1,5 +1,6 @@
 
 function stepable (chessboard, side) {
+
     return {
         /*
          * Returns the coordinates of a step forward went from the piece position.
@@ -91,6 +92,146 @@ function stepable (chessboard, side) {
     };
 }
 
+function movable (chessboard, side) {
+    const step = stepable(chessboard, side);
+
+    return {
+        getMoves: (position, steps, direction) => {
+            // Get the number of steps according to the given 'steps' parameter.
+            steps = steps === undefined ? chessboard.getMaxSteps() : steps;
+            let moves = [];
+            // Temporary variables needed for diagonals.
+            let forward = '';
+            let backward = '';
+
+            // Loop through each step.
+            for (let i = 0; i < steps; i++) {
+                let previousPosition = position;
+
+                // Go one step in the given direction.
+                switch (direction) {
+                    case 'forward':
+                        position = step.goOneStepForward(position);
+                        break;
+
+                    case 'backward':
+                        position = step.goOneStepBackward(position);
+                        break;
+
+                    case 'right':
+                        position = step.goOneStepRight(position);
+                        break;
+
+                    case 'left':
+                        position = step.goOneStepLeft(position);
+                        break;
+
+                    case 'right-diagonal-forward':
+                        // First go one step forward.
+                        position = step.goOneStepForward(position);
+
+                        // Check for boundary effect.
+                        if (position == previousPosition) {
+                            break
+                        }
+
+                        forward = position;
+
+                        // Then go one step right to get the diagonal direction.
+                        position = step.goOneStepRight(position);
+
+                        // Check again for boundary effect.
+                        if (position == forward) {
+                            position = previousPosition;
+                        }
+
+                        break;
+
+                    case 'left-diagonal-forward':
+                        // First go one step forward.
+                        position = step.goOneStepForward(position);
+
+                        // Check for boundary effect.
+                        if (position == previousPosition) {
+                            break
+                        }
+
+                        forward = position;
+
+                        // Then go one step left to get the diagonal direction.
+                        position = step.goOneStepLeft(position);
+
+                        // Check again for boundary effect.
+                        if (position == forward) {
+                            position = previousPosition;
+                        }
+
+                        break;
+
+                    case 'right-diagonal-backward':
+                        // First go one step backward.
+                        position = step.goOneStepBackward(position);
+
+                        // Check for boundary effect.
+                        if (position == previousPosition) {
+                            break
+                        }
+
+                        backward = position;
+
+                        // Then go one step right to get the diagonal direction.
+                        position = step.goOneStepRight(position);
+
+                        // Check again for boundary effect.
+                        if (position == backward) {
+                            position = previousPosition;
+                        }
+
+                        break;
+
+                    case 'left-diagonal-backward':
+                        // First go one step backward.
+                        position = step.goOneStepBackward(position);
+
+                        // Check for boundary effect.
+                        if (position == previousPosition) {
+                            break
+                        }
+
+                        backward = position;
+
+                        // Then go one step left to get the diagonal direction.
+                        position = step.goOneStepLeft(position);
+
+                        // Check again for boundary effect.
+                        if (position == backward) {
+                            position = previousPosition;
+                        }
+
+                        break;
+                }
+
+                let square = chessboard.getSquare(position);
+
+                // The position hasn't changed (ie: boundary effect), or the square is occupied by a friend piece.
+                if (position == previousPosition || square.charAt(1) == side) {
+                    // The piece can't move here.
+                    break;
+                }
+
+                moves.push(position);
+
+                // The square is occupied by an opponent piece (that can possibly be captured). 
+                if (square && square.charAt(1) != side) {
+                    // The piece can't go further.
+                    break;    
+                }
+            }
+
+            return moves;
+        }
+    };
+}
 
 class Movable {
     #chessboard;
