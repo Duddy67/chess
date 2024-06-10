@@ -80,6 +80,9 @@ class Piece {
         return this.#move.getMoves(this.#position, steps, 'left-diagonal-backward');
     }
 
+    setPosition(position) {
+        this.#position = position;
+    }
 }
 
 class King extends Piece {

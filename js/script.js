@@ -3,11 +3,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const chessboard = new Chessboard();
     let pieces = createChessboard(chessboard);
+    console.log(chessboard.getPieces());
 
-    console.log(pieces);
+    chessboard.possibleMoves = [];
 
-    const piece = new Pawn(chessboard, 'w', 'e2');
+    //const piece = new Pawn(chessboard, 'w', 'e2');
     //console.log(piece.getMoves());
+
+    let selectedPiece = [];
+
+    // Listen to click events coming from the chessboard.
+    document.getElementById('chessboard').addEventListener('click', (e) => {
+        // An empty square has been clicked.
+        if (e.target.classList.contains('square')) {
+            // A piece has been moved from a given position to this square.
+            // N.B: Promoted pawn moves are handled differently.
+            if (selectedPiece.length) {
+                // Get the square position (eg: e4, b6...).
+                const position = e.target.id;
+
+                // First make sure the piece is allowed to go to this square.
+                if (selectedPiece[0].getMoves().includes(position)) {
+                    // Store the piece's starting position.
+                    const from = selectedPiece[0].getPosition();
+                    chessboard.playMove(selectedPiece[0], position);
+                    movePiece(from, position);
+                    selectedPiece[0].setPosition(position);
+                    //updateHistory(chess);
+                }
+
+            }
+
+            hidePossibleMoves();
+        }
+
+        // A piece is clicked.
+        if (e.target.classList.contains('piece')) {
+            // Get the square position from the parent element (ie: square).
+            const position = e.target.parentElement.id;
+            const pieceType = e.target.dataset.piece.charAt(0);
+            const pieceSide = e.target.dataset.piece.charAt(1);   
+
+            if (selectedPiece.length == 0) {
+                // 
+                selectedPiece.push(getSelectedPiece(pieces, position));
+
+                // Check the piece can move to one or more squares.
+                if (selectedPiece[0].getMoves().length) {
+                    showPossibleMoves(selectedPiece[0]);
+                }
+            }
+        }
+    });
 });
 
 function createChessboard(chessboard) {
@@ -89,3 +136,54 @@ function createChessboard(chessboard) {
    return pieces;
 }
 
+function getSelectedPiece(pieces, position) {
+    for (let i = 0; i < pieces.length; i++) {
+        if (pieces[i].getPosition() == position) {
+            return pieces[i];
+        }
+    }
+
+    return null;
+}
+
+function showPossibleMoves(piece) {
+    piece.getMoves().forEach((move) => {
+        //const square = chess.getChessboard()[move.charAt(1)][move.charAt(0)];
+        document.getElementById(move).classList.add('move');
+    });
+}
+
+function hidePossibleMoves() {
+    document.querySelectorAll('.move').forEach((square) => {
+        square.classList.remove('move');
+        //console.log(square);
+    });
+}
+
+/*
+ * Moves a piece to a given position on the chessboard. Removes a captured piece if any.
+ */
+function movePiece(from, to, newPiece) {
+    const fromSquare = document.getElementById(from);
+    // Get the piece to move and remove it from the square.
+    const piece = fromSquare.firstChild;
+    fromSquare.removeChild(fromSquare.firstElementChild);
+
+    const toSquare = document.getElementById(to);
+
+    // A piece is captured.
+    if (toSquare.hasChildNodes()) {
+        // Remove the captured piece.
+        toSquare.innerHTML = '';
+    }
+
+    // Check for promoted pawn.
+    if (newPiece !== undefined) {
+        // Replace the pawn with the new piece.
+        piece.dataset.piece = newPiece;
+        piece.src = 'images/' + newPiece + '.png';
+    }
+
+    // Put the piece on the destination square.
+    toSquare.appendChild(piece);
+}
