@@ -82,6 +82,15 @@ class Chessboard {
         }
     }
 
+    #setNewPiece(newPiece) {
+        this.getPieces().forEach((piece) => {
+            if (piece.getCode() == newPiece && piece.getPosition() == 'xx') {
+                return piece;
+            }
+        });
+
+    }
+
     getPieces() {
         return this.#pieces;
     }
@@ -116,26 +125,53 @@ class Chessboard {
         return this.#MAX_SQUARES;
     }
 
-    playMove(piece, position, newPiece) {
+    /*
+     * Moves a given piece to a given position.
+     */
+    movePiece(piece, position, newPiece) {
 
+        // A piece is captured.
         if (this.getSquare(position)) {
-            //this._(_key).move.capture = true;
+            // Set the captured piece to the xx position.
+            this.getPieceAtPosition(position).setPosition('xx');
         }
+
+        // Get the starting position.
+        const from = piece.getPosition();
+        let code = piece.getCode();
 
         // Check for promoted pawn.
         if (newPiece !== undefined) {
             // Replace the promoted pawn by the selected piece.
             //this._(_key).move.piece = newPiece;
+            code = newPiece;
+            // The pawn is no longer used.
+            piece.setPosition('xx');
+        }
+        else {
+            // Set the piece's new position.
+            piece.setPosition(position);
         }
 
-        //this.#updateBoard(piece, position);
         // Update the piece position on the chessboard.
-        this.#board[this.#coordinates[position.charAt(1)]][this.#coordinates[position.charAt(0)]] = '';
-        this.#board[this.#coordinates[position.charAt(1)]][this.#coordinates[position.charAt(0)]] = piece.getCode();
+        this.#board[this.#coordinates[from.charAt(1)]][this.#coordinates[from.charAt(0)]] = '';
+        this.#board[this.#coordinates[position.charAt(1)]][this.#coordinates[position.charAt(0)]] = code;
 
         //_setHistory(this._);
-        //this.resetMove();
 
         this.switchSides();
+    }
+
+    /*
+     * Returns the piece on the board at a given position.
+     */
+    getPieceAtPosition(position) {
+        for (let i = 0; i < this.#pieces.length; i++) {
+            if (this.#pieces[i].getPosition() == position) {
+                return this.#pieces[i];
+            }
+        }
+
+        return null;
     }
 }

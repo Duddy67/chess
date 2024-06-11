@@ -282,12 +282,12 @@ class Knight extends Piece {
 
 class Pawn extends Piece {
     #stepable;
-    #isPromoted;
+    #promoted;
 
     constructor(chessboard, side, position) {
         super(chessboard, side, 'P', position);
         this.#stepable = stepable(chessboard, side);
-        this.#isPromoted = false;
+        this.#promoted = false;
     }
 
     getMoves() {
@@ -330,12 +330,12 @@ class Pawn extends Piece {
             moves.forEach((move) => {
                 // A white pawn can move up somewhere to the 8th rank.
                 if (this.getSide() == 'w' && /[a-h]8/.test(move)) {
-                    this.isPromoted = true;
+                    this.#promoted = true;
                 }
 
                 // A black pawn can move down somewhere to the first rank.
                 if (this.getSide() == 'b' && /[a-h]1/.test(move)) {
-                    this.isPromoted = true;
+                    this.#promoted = true;
                 }
             });
         }
@@ -343,6 +343,10 @@ class Pawn extends Piece {
         // TODO Check for the "en passant" move.
 
         return moves;
+    }
+
+    isPromoted() {
+        return this.#promoted;
     }
 }
 
