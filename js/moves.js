@@ -1,4 +1,7 @@
 
+/*
+ * Returns the ending position after one step on the board in a specific direction.
+ */
 function stepable (chessboard, side) {
 
     return {
@@ -92,6 +95,9 @@ function stepable (chessboard, side) {
     };
 }
 
+/*
+ * Returns the possible moves on the board in a specific direction for a given number of steps.
+ */
 function movable (chessboard, side) {
     const step = stepable(chessboard, side);
 

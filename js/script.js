@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     //chessboard.possibleMoves = [];
 
     //const piece = new Pawn(chessboard, 'w', 'e2');
-    //console.log(chessboard.getPieceAtPosition('e2').isPromoted());
 
     let selectedPiece = [];
 
@@ -94,7 +93,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target.classList.contains('piece')) {
                 position = e.target.parentElement.id;
                 square = e.target.parentElement;
-                console.log('piece ' + position);
             }
 
             // The mouse is over squares which are part of the pawn possible moves.
@@ -127,25 +125,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Get the position where the new piece should go.
                 const position = e.currentTarget.dataset.position;
 
-                // Invoke movePiece() first as playMove() resets the move object.
-                //const from = chess.getMoveFrom();
-                //movePiece(from.file + from.rank, position, newPiece);
-                //chess.playMove(position, newPiece);
-
                 // Store the piece's starting position.
                 const from = selectedPiece[0].getPosition();
 
                 chessboard.movePiece(selectedPiece[0], position, newPiece);
-                movePiece(from, position);
+                movePiece(from, position, newPiece);
 
                 // Reset the data.
-                //chess.possibleMoves = [];
                 //updateHistory(chess);
                 hidePossibleMoves();
+                selectedPiece = []
                 // Hide the new piece board.
                 e.currentTarget.style.display = 'none';
             }
         });
+    });
+
+    document.addEventListener('move', (e) => {
+        console.log(e.detail.move);
     });
 });
 
@@ -253,7 +250,7 @@ function hidePossibleMoves() {
 }
 
 /*
- * Moves a piece to a given position on the chessboard. Removes a captured piece if any.
+ * Moves a piece to a given position on the HTML chessboard. Removes a captured piece if any.
  */
 function movePiece(from, to, newPiece) {
     const fromSquare = document.getElementById(from);

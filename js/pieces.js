@@ -1,4 +1,7 @@
 
+/*
+ * Super class that contains the attributes and methods common to all chess pieces.
+ */
 class Piece {
     #chessboard;
     #side;
@@ -48,6 +51,8 @@ class Piece {
         return this.#image;
     }
 
+    // Methods that return the ending position after a given number of steps on the board in a specific direction. 
+
     getForwardMoves(steps) {
         return this.#move.getMoves(this.#position, steps, 'forward');
     }
@@ -84,6 +89,8 @@ class Piece {
         this.#position = position;
     }
 }
+
+// Children classes that create the chess pieces and their specificities.
 
 class King extends Piece {
 

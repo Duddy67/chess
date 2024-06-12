@@ -25,9 +25,6 @@ class Chessboard {
     // The maximum number of squares a rank, a file or a diagonal can have.
     #MAX_SQUARES = 8;
 
-    // The move object that stores the starting and ending positions of a piece plus extra data regarding the move.
-    #move = {'from': {'rank': '', 'file': ''}, 'to': {'rank': '', 'file': ''}, 'piece': '', 'captured': false};
-
     // The pieces on the board.
     #pieces = [];
 
@@ -36,7 +33,11 @@ class Chessboard {
         this.#setPieces();
     }
 
+    /*
+     * Creates a piece object for each piece present on the board.
+     */
     #setPieces() {
+        // File and rank values to set piece positions.
         const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
         const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
@@ -48,47 +49,46 @@ class Chessboard {
                     const type = this.#board[i][j].charAt(0);
                     const side = this.#board[i][j].charAt(1);
                     const position = files[j] + ranks[i];
-                    let piece;
-
-                    switch (type) {
-                        case 'K':
-                            piece = new King(this, side, position);
-                            break;
-
-                        case 'Q':
-                            piece = new Queen(this, side, position);
-                            break;
-
-                        case 'R':
-                            piece = new Rook(this, side, position);
-                            break;
-
-                        case 'B':
-                            piece = new Bishop(this, side, position);
-                            break;
-
-                        case 'N':
-                            piece = new Knight(this, side, position);
-                            break;
-
-                        case 'P':
-                            piece = new Pawn(this, side, position);
-                            break;
-                    }
-
+                    let piece = this.#createPiece(type, side, position);
                     this.#pieces.push(piece);
                 }
             }
         }
     }
 
-    #setNewPiece(newPiece) {
-        this.getPieces().forEach((piece) => {
-            if (piece.getCode() == newPiece && piece.getPosition() == 'xx') {
-                return piece;
-            }
-        });
+    /*
+     * Creates a piece corresponding to the given type and side.
+     */
+    #createPiece(type, side, position) {
+        let piece = null;
 
+        switch (type) {
+            case 'K':
+                piece = new King(this, side, position);
+                break;
+
+            case 'Q':
+                piece = new Queen(this, side, position);
+                break;
+
+            case 'R':
+                piece = new Rook(this, side, position);
+                break;
+
+            case 'B':
+                piece = new Bishop(this, side, position);
+                break;
+
+            case 'N':
+                piece = new Knight(this, side, position);
+                break;
+
+            case 'P':
+                piece = new Pawn(this, side, position);
+                break;
+        }
+
+        return piece;
     }
 
     getPieces() {
@@ -129,7 +129,6 @@ class Chessboard {
      * Moves a given piece to a given position.
      */
     movePiece(piece, position, newPiece) {
-
         // A piece is captured.
         if (this.getSquare(position)) {
             // Set the captured piece to the xx position.
@@ -142,11 +141,14 @@ class Chessboard {
 
         // Check for promoted pawn.
         if (newPiece !== undefined) {
-            // Replace the promoted pawn by the selected piece.
-            //this._(_key).move.piece = newPiece;
             code = newPiece;
-            // The pawn is no longer used.
-            piece.setPosition('xx');
+            const type = newPiece.charAt(0);
+            const side = newPiece.charAt(1);
+
+            // Get the promoted pawn's index.
+            const index = this.getPieceIndexAtPosition(from);
+            // Replace the promoted pawn by the selected new piece.
+            this.#pieces.splice(index, 1, this.#createPiece(type, side, position));
         }
         else {
             // Set the piece's new position.
@@ -157,6 +159,11 @@ class Chessboard {
         this.#board[this.#coordinates[from.charAt(1)]][this.#coordinates[from.charAt(0)]] = '';
         this.#board[this.#coordinates[position.charAt(1)]][this.#coordinates[position.charAt(0)]] = code;
 
+        const event = new CustomEvent('move', {
+            detail: {move: 'Qwd8'}
+        });
+
+        document.dispatchEvent(event);
         //_setHistory(this._);
 
         this.switchSides();
@@ -169,6 +176,19 @@ class Chessboard {
         for (let i = 0; i < this.#pieces.length; i++) {
             if (this.#pieces[i].getPosition() == position) {
                 return this.#pieces[i];
+            }
+        }
+
+        return null;
+    }
+
+    /*
+     * Returns the piece's index on the board at a given position.
+     */
+    getPieceIndexAtPosition(position) {
+        for (let i = 0; i < this.#pieces.length; i++) {
+            if (this.#pieces[i].getPosition() == position) {
+                return i;
             }
         }
 
