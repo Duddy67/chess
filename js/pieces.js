@@ -17,7 +17,6 @@ class Piece {
             throw new Error('Class is of abstract type and can\'t be instantiated');
         }
 
-        //this.#move = new Movable(chessboard, side);
         this.#move = movable(chessboard, side);
         this.#chessboard = chessboard;
         this.#side = side;

@@ -4,10 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const chessboard = new Chessboard();
     createChessboard(chessboard);
 
-    //chessboard.possibleMoves = [];
-
-    //const piece = new Pawn(chessboard, 'w', 'e2');
-
     let selectedPiece = [];
 
     // Listen to click events coming from the chessboard.
@@ -27,7 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     chessboard.movePiece(selectedPiece[0], position);
                     movePiece(from, position);
-                    //updateHistory(chess);
                 }
 
             }
@@ -132,7 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 movePiece(from, position, newPiece);
 
                 // Reset the data.
-                //updateHistory(chess);
                 hidePossibleMoves();
                 selectedPiece = []
                 // Hide the new piece board.
@@ -141,8 +135,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Dispatched after each move.
     document.addEventListener('move', (e) => {
-        console.log(e.detail.move);
+        //console.log(e.detail.data);
+        updateHistory(chessboard);
     });
 });
 
@@ -181,48 +177,13 @@ function createChessboard(chessboard) {
 
             // A piece is on the square.
             if (board[i][j]) {
-                const type = board[i][j].charAt(0);
-                const side = board[i][j].charAt(1);
-                const position = files[j] + ranks[i];
-                let piece;
-
-                switch (type) {
-                    case 'K':
-                        piece = new King(chessboard, side, position);
-                        break;
-
-                    case 'Q':
-                        piece = new Queen(chessboard, side, position);
-                        break;
-
-                    case 'R':
-                        piece = new Rook(chessboard, side, position);
-                        break;
-
-                    case 'B':
-                        piece = new Bishop(chessboard, side, position);
-                        break;
-
-                    case 'N':
-                        piece = new Knight(chessboard, side, position);
-                        break;
-
-                    case 'P':
-                        piece = new Pawn(chessboard, side, position);
-                        break;
-                }
-
-                pieces.push(piece);
-
-                square.innerHTML += '<img src="' + piece.getImage() + '" data-piece="' + board[i][j] + '" class="piece">';
+                square.innerHTML += '<img src="images/' + board[i][j] + '.png" data-piece="' + board[i][j] + '" class="piece">';
             }
 
             // Add the square to the chessboard.
             document.getElementById('chessboard').append(square);
         }
     }
-
-   return pieces;
 }
 
 function getSelectedPiece(pieces, position) {
@@ -237,7 +198,6 @@ function getSelectedPiece(pieces, position) {
 
 function showPossibleMoves(piece) {
     piece.getMoves().forEach((move) => {
-        //const square = chess.getChessboard()[move.charAt(1)][move.charAt(0)];
         document.getElementById(move).classList.add('move');
     });
 }
@@ -245,7 +205,6 @@ function showPossibleMoves(piece) {
 function hidePossibleMoves() {
     document.querySelectorAll('.move').forEach((square) => {
         square.classList.remove('move');
-        //console.log(square);
     });
 }
 
@@ -276,3 +235,31 @@ function movePiece(from, to, newPiece) {
     // Put the piece on the destination square.
     toSquare.appendChild(piece);
 }
+
+function updateHistory(chessboard) {
+    const history = chessboard.getHistory();
+    let tr = document.createElement('tr');
+    let tdIndex = document.createElement('td');
+    let tdMove = document.createElement('td');
+    tdMove.setAttribute('class', 'move-history');
+    tdMove.setAttribute('data-move', history[history.length - 1].move);
+    tdMove.setAttribute('data-move-number', chessboard.getHistory().length);
+
+    if (chessboard.whoseTurnIsIt() == 'w') {
+        tdMove.classList.add('text-end');
+    }
+
+    const index = document.createTextNode(chessboard.getHistory().length);
+    tdIndex.appendChild(index);
+    const latestMove = document.createTextNode(history[history.length - 1].move);
+    tdMove.appendChild(latestMove);
+    tr.appendChild(tdIndex);
+    tr.appendChild(tdMove);
+    const body = document.getElementById('history').getElementsByTagName('tbody')[0];
+    body.appendChild(tr);
+
+    // Scroll to the bottom of the div.
+    const wrapper = document.getElementById('history-wrapper');
+    wrapper.scrollTop = wrapper.scrollHeight;
+}
+

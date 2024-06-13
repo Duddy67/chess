@@ -28,6 +28,8 @@ class Chessboard {
     // The pieces on the board.
     #pieces = [];
 
+    #history = [];
+
     constructor(board) {
         this.#board = board !== undefined ? board : this.#board;
         this.#setPieces();
@@ -91,6 +93,37 @@ class Chessboard {
         return piece;
     }
 
+    /*
+     * Gets the move data together.
+     */
+    #getMove(pieceCode, from, to, actions) {
+        const move = pieceCode.charAt(0) + to;
+
+        const data = {
+            pieceCode: pieceCode,
+            from: from,
+            to: to,
+            move: move,
+            actions: actions,
+            board: this.#board
+        }
+
+        return data;
+    }
+
+    /*
+     * Creates and sends the move event.
+     */
+    #sendMoveEvent(data) {
+        const event = new CustomEvent('move', {
+            detail: {
+                data: data
+            }
+        });
+
+        document.dispatchEvent(event);
+    }
+
     getPieces() {
         return this.#pieces;
     }
@@ -125,14 +158,20 @@ class Chessboard {
         return this.#MAX_SQUARES;
     }
 
+    getHistory() {
+        return this.#history;
+    }
+
     /*
      * Moves a given piece to a given position.
      */
     movePiece(piece, position, newPiece) {
+        let actions = [];
         // A piece is captured.
         if (this.getSquare(position)) {
             // Set the captured piece to the xx position.
             this.getPieceAtPosition(position).setPosition('xx');
+            actions.push('x');
         }
 
         // Get the starting position.
@@ -149,6 +188,7 @@ class Chessboard {
             const index = this.getPieceIndexAtPosition(from);
             // Replace the promoted pawn by the selected new piece.
             this.#pieces.splice(index, 1, this.#createPiece(type, side, position));
+            actions.push(position + type);
         }
         else {
             // Set the piece's new position.
@@ -159,14 +199,12 @@ class Chessboard {
         this.#board[this.#coordinates[from.charAt(1)]][this.#coordinates[from.charAt(0)]] = '';
         this.#board[this.#coordinates[position.charAt(1)]][this.#coordinates[position.charAt(0)]] = code;
 
-        const event = new CustomEvent('move', {
-            detail: {move: 'Qwd8'}
-        });
-
-        document.dispatchEvent(event);
-        //_setHistory(this._);
-
         this.switchSides();
+
+        const move = this.#getMove(code, from, position, actions);
+        this.#history.push(move);
+
+        this.#sendMoveEvent(move);
     }
 
     /*
