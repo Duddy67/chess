@@ -45,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Check the piece can move to one or more squares.
                 if (selectedPiece[0].getMoves().length) {
+         //console.log(selectedPiece[0].getMoves());
                     showPossibleMoves(selectedPiece[0]);
                 }
             }

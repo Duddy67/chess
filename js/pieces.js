@@ -111,6 +111,51 @@ class King extends Piece {
                             this.getLeftDiagonalBackwardMoves(steps)
         );
     }
+
+    isAttacked() {
+        let course = [];
+        let attacker = '';
+        const straightDirections = ['Forward', 'Backward', 'Right', 'Left'];
+        const diagonalDirections = ['RightDiagonalForward', 'RightDiagonalBackward', 'LeftDiagonalForward', 'LeftDiagonalBackward'];
+        const straightAttackers = ['Q', 'R'];
+        const diagonalAttackers = ['Q', 'B', 'P'];
+
+        straightDirections.forEach((direction) => {
+            let functionName = 'get' + direction + 'Moves';
+            course = this[functionName]();
+
+            // Check whether an opponent piece stands at the end of the course.
+            if (course.length && course[course.length - 1]) {
+                // Get the piece type.
+                attacker = course[course.length - 1].charAt(0);
+                // The king is attacked by the opponent piece.
+                if (straightAttackers.includes(attacker)) {
+                    return true;
+                }
+            }
+        });
+
+        diagonalDirections.forEach((direction) => {
+            let functionName = 'get' + direction + 'Moves';
+            course = this[functionName]();
+
+            // Check whether an opponent piece stands at the end of the course.
+            if (course.length && course[course.length - 1]) {
+                // Get the piece type.
+                attacker = course[course.length - 1].charAt(0);
+                // The king is attacked by the opponent piece.
+                if (diagonalAttackers.includes(attacker)) {
+                    if (attacker != 'P') {
+                        return true;
+                    }
+                    // A pawn can capture a piece only if the piece stands on the next square diagonally.
+                    else if (course.length == 1) {
+                        return true;
+                    }
+                }
+            }
+        });
+    }
 }
 
 class Queen extends Piece {

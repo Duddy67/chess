@@ -167,6 +167,8 @@ class Chessboard {
      */
     movePiece(piece, position, newPiece) {
         let actions = [];
+        let stepBack = {'piece': piece, 'capturedPiece': null, 'board': this.#board, 'from': piece.getPosition(), 'to': position, 'newPiece': newPiece};
+
         // A piece is captured.
         if (this.getSquare(position)) {
             // Set the captured piece to the xx position.
@@ -201,10 +203,18 @@ class Chessboard {
 
         this.switchSides();
 
+        if (isKingAttacked()) {
+            // step back
+        }
+
         const move = this.#getMove(code, from, position, actions);
         this.#history.push(move);
 
         this.#sendMoveEvent(move);
+    }
+
+    isKingAttacked() {
+        return getPieceByCode('K' + this.whoseTurnIsIt()).isAttacked();
     }
 
     /*
@@ -227,6 +237,19 @@ class Chessboard {
         for (let i = 0; i < this.#pieces.length; i++) {
             if (this.#pieces[i].getPosition() == position) {
                 return i;
+            }
+        }
+
+        return null;
+    }
+
+    /*
+     * Returns the piece on the board that have a given code.
+     */
+    getPieceByCode(code) {
+        for (let i = 0; i < this.#pieces.length; i++) {
+            if (this.#pieces[i].getCode() == code) {
+                return this.#pieces[i];
             }
         }
 
