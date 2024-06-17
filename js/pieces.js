@@ -9,9 +9,10 @@ class Piece {
     #position;
     #type;
     #code;
+    #index;
     #image;
 
-    constructor(chessboard, side, type, position) {
+    constructor(chessboard, side, type, position, index) {
         // Make the class abstract.
         if (this.constructor == Piece) {
             throw new Error('Class is of abstract type and can\'t be instantiated');
@@ -23,6 +24,7 @@ class Piece {
         this.#position = position;
         this.#type = type;
         this.#code = this.#type + this.#side;
+        this.#index = index === undefined ? chessboard.getPieces().length : index;
         this.#image = 'images/' + this.#code + '.png';
     }
 
@@ -44,6 +46,10 @@ class Piece {
 
     getCode() {
         return this.#code;
+    }
+
+    getIndex() {
+        return this.#index;
     }
 
     getImage() {
@@ -120,29 +126,29 @@ class King extends Piece {
         const straightAttackers = ['Q', 'R'];
         const diagonalAttackers = ['Q', 'B', 'P'];
 
-        straightDirections.forEach((direction) => {
-            let functionName = 'get' + direction + 'Moves';
+        for (let i = 0; i < straightDirections.length; i++) {
+            let functionName = 'get' + straightDirections[i] + 'Moves';
             course = this[functionName]();
 
-            // Check whether an opponent piece stands at the end of the course.
-            if (course.length && course[course.length - 1]) {
+            // Check whether an opponent piece stands at the end of the course (ie: the last square).
+            if (course.length && course[course.length - 1] && this.getChessboard().getSquare(course[course.length - 1])) {
                 // Get the piece type.
-                attacker = course[course.length - 1].charAt(0);
+                attacker = this.getChessboard().getSquare(course[course.length - 1]).charAt(0);
                 // The king is attacked by the opponent piece.
                 if (straightAttackers.includes(attacker)) {
                     return true;
                 }
             }
-        });
+        }
 
-        diagonalDirections.forEach((direction) => {
-            let functionName = 'get' + direction + 'Moves';
+        for (let i = 0; i < diagonalDirections.length; i++) {
+            let functionName = 'get' + diagonalDirections[i] + 'Moves';
             course = this[functionName]();
 
-            // Check whether an opponent piece stands at the end of the course.
-            if (course.length && course[course.length - 1]) {
+            // Check whether an opponent piece stands at the end of the course (ie: the last square).
+            if (course.length && course[course.length - 1] && this.getChessboard().getSquare(course[course.length - 1])) {
                 // Get the piece type.
-                attacker = course[course.length - 1].charAt(0);
+                attacker = this.getChessboard().getSquare(course[course.length - 1]).charAt(0);
                 // The king is attacked by the opponent piece.
                 if (diagonalAttackers.includes(attacker)) {
                     if (attacker != 'P') {
@@ -154,7 +160,9 @@ class King extends Piece {
                     }
                 }
             }
-        });
+        }
+
+        return false;
     }
 }
 

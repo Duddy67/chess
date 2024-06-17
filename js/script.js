@@ -21,8 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Store the piece's starting position.
                     const from = selectedPiece[0].getPosition();
 
-                    chessboard.movePiece(selectedPiece[0], position);
-                    movePiece(from, position);
+                    // Check the move can be played.
+                    if (chessboard.movePiece(selectedPiece[0], position)) {
+                        movePiece(from, position);
+                    }
                 }
 
             }
@@ -63,8 +65,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Store the piece's starting position.
                     const from = selectedPiece[0].getPosition();
 
-                    chessboard.movePiece(selectedPiece[0], position);
-                    movePiece(from, position);
+                    // Check the move can be played.
+                    if (chessboard.movePiece(selectedPiece[0], position)) {
+                        movePiece(from, position);
+                    }
                 }
 
                 hidePossibleMoves();
@@ -124,8 +128,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Store the piece's starting position.
                 const from = selectedPiece[0].getPosition();
 
-                chessboard.movePiece(selectedPiece[0], position, newPiece);
-                movePiece(from, position, newPiece);
+                // Check the move can be played.
+                if (chessboard.movePiece(selectedPiece[0], position, newPiece)) {
+                    movePiece(from, position, newPiece);
+                }
 
                 // Reset the data.
                 hidePossibleMoves();

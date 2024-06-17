@@ -61,32 +61,32 @@ class Chessboard {
     /*
      * Creates a piece corresponding to the given type and side.
      */
-    #createPiece(type, side, position) {
+    #createPiece(type, side, position, index) {
         let piece = null;
 
         switch (type) {
             case 'K':
-                piece = new King(this, side, position);
+                piece = new King(this, side, position, index);
                 break;
 
             case 'Q':
-                piece = new Queen(this, side, position);
+                piece = new Queen(this, side, position, index);
                 break;
 
             case 'R':
-                piece = new Rook(this, side, position);
+                piece = new Rook(this, side, position, index);
                 break;
 
             case 'B':
-                piece = new Bishop(this, side, position);
+                piece = new Bishop(this, side, position, index);
                 break;
 
             case 'N':
-                piece = new Knight(this, side, position);
+                piece = new Knight(this, side, position, index);
                 break;
 
             case 'P':
-                piece = new Pawn(this, side, position);
+                piece = new Pawn(this, side, position, index);
                 break;
         }
 
@@ -122,6 +122,28 @@ class Chessboard {
         });
 
         document.dispatchEvent(event);
+    }
+
+    /*
+     * Reset the pieces and the board to their previous state.
+     */
+    #stepBack(data) {
+        // Move the piece back to its starting position.
+        data.piece.setPosition(data.from);
+
+        if (data.capturedPiece) {
+           // Bring the captured piece back on the board.
+           data.capturedPiece.setPosition(data.to);
+        }
+
+        if (data.newPiece) {
+            // Switch back into the promoted pawn.
+            this.#pieces.splice(data.piece.getIndex(), 1, data.piece);
+        }
+
+        // Set the board to its previous state.
+        this.#board[this.#coordinates[data.from.charAt(1)]][this.#coordinates[data.from.charAt(0)]] = data.piece.getCode();
+        this.#board[this.#coordinates[data.to.charAt(1)]][this.#coordinates[data.to.charAt(0)]] = data.capturedPiece ? data.capturedPiece.getCode() : '';
     }
 
     getPieces() {
@@ -167,12 +189,21 @@ class Chessboard {
      */
     movePiece(piece, position, newPiece) {
         let actions = [];
-        let stepBack = {'piece': piece, 'capturedPiece': null, 'board': this.#board, 'from': piece.getPosition(), 'to': position, 'newPiece': newPiece};
+
+        // Collect data in case of step back.
+        let data = {
+            'piece': piece,
+            'from': piece.getPosition(),
+            'to': position,
+            'newPiece': newPiece === undefined ? null : newPiece,
+        };
 
         // A piece is captured.
         if (this.getSquare(position)) {
             // Set the captured piece to the xx position.
-            this.getPieceAtPosition(position).setPosition('xx');
+            const capturedPiece = this.getPieceAtPosition(position);
+            capturedPiece.setPosition('xx');
+            data.capturedPiece = capturedPiece;
             actions.push('x');
         }
 
@@ -186,10 +217,8 @@ class Chessboard {
             const type = newPiece.charAt(0);
             const side = newPiece.charAt(1);
 
-            // Get the promoted pawn's index.
-            const index = this.getPieceIndexAtPosition(from);
             // Replace the promoted pawn by the selected new piece.
-            this.#pieces.splice(index, 1, this.#createPiece(type, side, position));
+            this.#pieces.splice(piece.getIndex(), 1, this.#createPiece(type, side, position, piece.getIndex()));
             actions.push(position + type);
         }
         else {
@@ -201,20 +230,36 @@ class Chessboard {
         this.#board[this.#coordinates[from.charAt(1)]][this.#coordinates[from.charAt(0)]] = '';
         this.#board[this.#coordinates[position.charAt(1)]][this.#coordinates[position.charAt(0)]] = code;
 
-        this.switchSides();
+        // The move can't be played as the king of the side that is playing is under attack.
+        if (this.isKingAttacked()) {
+          //console.log('King ' + this.whoseTurnIsIt() + ' is attacked');
+          this.#stepBack(data);
+console.log(this.#pieces);
+console.log(this.#board);
 
-        if (isKingAttacked()) {
-            // step back
+          return false;
         }
+
+        this.switchSides();
 
         const move = this.#getMove(code, from, position, actions);
         this.#history.push(move);
 
         this.#sendMoveEvent(move);
+
+        if (this.isKingAttacked()) {
+          console.log('King ' + this.whoseTurnIsIt() + ' is attacked');
+        }
+
+        return true;
     }
 
     isKingAttacked() {
-        return getPieceByCode('K' + this.whoseTurnIsIt()).isAttacked();
+        for (let i = 0; i < this.#pieces.length; i++) {
+            if (this.#pieces[i].getCode() == 'K' + this.whoseTurnIsIt()) {
+                return this.#pieces[i].isAttacked();
+            }
+        }
     }
 
     /*
@@ -223,32 +268,6 @@ class Chessboard {
     getPieceAtPosition(position) {
         for (let i = 0; i < this.#pieces.length; i++) {
             if (this.#pieces[i].getPosition() == position) {
-                return this.#pieces[i];
-            }
-        }
-
-        return null;
-    }
-
-    /*
-     * Returns the piece's index on the board at a given position.
-     */
-    getPieceIndexAtPosition(position) {
-        for (let i = 0; i < this.#pieces.length; i++) {
-            if (this.#pieces[i].getPosition() == position) {
-                return i;
-            }
-        }
-
-        return null;
-    }
-
-    /*
-     * Returns the piece on the board that have a given code.
-     */
-    getPieceByCode(code) {
-        for (let i = 0; i < this.#pieces.length; i++) {
-            if (this.#pieces[i].getCode() == code) {
                 return this.#pieces[i];
             }
         }
