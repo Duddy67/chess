@@ -102,9 +102,9 @@ function movable (chessboard, side) {
     const step = stepable(chessboard, side);
 
     return {
-        getMoves: (position, steps, direction) => {
-            // Get the number of steps according to the given 'steps' parameter.
-            steps = steps === undefined ? chessboard.getMaxSteps() : steps;
+        // N.B: If the skip parameter is set to true, the possible friend or opponent pieces standing
+        //      in the way are not taken into account. It is mainly used for the knight moves.
+        getMoves: (position, direction, steps = chessboard.getMaxSteps(), skip = false) => {
             let moves = [];
             // Temporary variables needed for diagonals.
             let forward = '';
@@ -219,8 +219,14 @@ function movable (chessboard, side) {
 
                 let square = chessboard.getSquare(position);
 
-                // The position hasn't changed (ie: boundary effect), or the square is occupied by a friend piece.
-                if (position == previousPosition || square.charAt(1) == side) {
+                // The position hasn't changed (ie: boundary effect).
+                if (position == previousPosition) {
+                    // The piece can't move here.
+                    break;
+                }
+
+                // The square is occupied by a friend piece.
+                if (!skip && square.charAt(1) == side) {
                     // The piece can't move here.
                     break;
                 }
@@ -228,7 +234,7 @@ function movable (chessboard, side) {
                 moves.push(position);
 
                 // The square is occupied by an opponent piece (that can possibly be captured). 
-                if (square && square.charAt(1) != side) {
+                if (!skip && square && square.charAt(1) != side) {
                     // The piece can't go further.
                     break;    
                 }

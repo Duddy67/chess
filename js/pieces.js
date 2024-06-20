@@ -58,40 +58,84 @@ class Piece {
 
     // Methods that return the ending position after a given number of steps on the board in a specific direction. 
 
-    getForwardMoves(steps) {
-        return this.#move.getMoves(this.#position, steps, 'forward');
+    getForwardMoves(steps, skip) {
+        return this.#move.getMoves(this.#position, 'forward', steps, skip);
     }
 
-    getBackwardMoves(steps) {
-        return this.#move.getMoves(this.#position, steps, 'backward');
+    getBackwardMoves(steps, skip) {
+        return this.#move.getMoves(this.#position, 'backward', steps, skip);
     }
 
-    getRightMoves(steps) {
-        return this.#move.getMoves(this.#position, steps, 'right');
+    getRightMoves(steps, skip) {
+        return this.#move.getMoves(this.#position, 'right', steps, skip);
     }
 
-    getLeftMoves(steps) {
-        return this.#move.getMoves(this.#position, steps, 'left');
+    getLeftMoves(steps, skip) {
+        return this.#move.getMoves(this.#position, 'left', steps, skip);
     }
 
-    getRightDiagonalForwardMoves(steps) {
-        return this.#move.getMoves(this.#position, steps, 'right-diagonal-forward');
+    getRightDiagonalForwardMoves(steps, skip) {
+        return this.#move.getMoves(this.#position, 'right-diagonal-forward', steps, skip);
     }
 
-    getLeftDiagonalForwardMoves(steps) {
-        return this.#move.getMoves(this.#position, steps, 'left-diagonal-forward');
+    getLeftDiagonalForwardMoves(steps, skip) {
+        return this.#move.getMoves(this.#position, 'left-diagonal-forward', steps, skip);
     }
 
-    getRightDiagonalBackwardMoves(steps) {
-        return this.#move.getMoves(this.#position, steps, 'right-diagonal-backward');
+    getRightDiagonalBackwardMoves(steps, skip) {
+        return this.#move.getMoves(this.#position, 'right-diagonal-backward', steps, skip);
     }
 
-    getLeftDiagonalBackwardMoves(steps) {
-        return this.#move.getMoves(this.#position, steps, 'left-diagonal-backward');
+    getLeftDiagonalBackwardMoves(steps, skip) {
+        return this.#move.getMoves(this.#position, 'left-diagonal-backward', steps, skip);
     }
 
     setPosition(position) {
         this.#position = position;
+    }
+
+    /*
+     * Computes the position after a step is made from a given position to a given direction.
+     */
+    getOneStepFurtherPosition(position, direction) {
+        if (this.#side == 'w' && direction == 'forward' && parseInt(position.charAt(1)) < 8) {
+            const rank = parseInt(position.charAt(1)) + 1;
+            position = position.charAt(0) + rank;
+        }
+        else if (this.#side == 'b' && direction == 'forward' && parseInt(position.charAt(1)) > 1) {
+            const rank = parseInt(position.charAt(1)) - 1;
+            position = position.charAt(0) + rank;
+        }
+        else if (this.#side == 'w' && direction == 'backward' && parseInt(position.charAt(1)) > 1) {
+            const rank = parseInt(position.charAt(1)) - 1;
+            position = position.charAt(0) + rank;
+        }
+        else if (this.#side == 'b' && direction == 'backward' && parseInt(position.charAt(1)) < 8) {
+            const rank = parseInt(position.charAt(1)) + 1;
+            position = position.charAt(0) + rank;
+        }
+        else if (this.#side == 'w' && direction == 'right' && position.charAt(0) < 'h') {
+            let file = position.charAt(0);
+            file = String.fromCharCode(file.charCodeAt(0) + 1);
+            position = file + position.charAt(1);
+        }
+        else if (this.#side == 'b' && direction == 'right' && position.charAt(0) > 'a') {
+            let file = position.charAt(0);
+            file = String.fromCharCode(file.charCodeAt(0) - 1);
+            position = file + position.charAt(1);
+        }
+        else if (this.#side == 'w' && direction == 'left' && position.charAt(0) > 'a') {
+            let file = position.charAt(0);
+            file = String.fromCharCode(file.charCodeAt(0) - 1);
+            position = file + position.charAt(1);
+        }
+        else if (this.#side == 'b' && direction == 'left' && position.charAt(0) < 'h') {
+            let file = position.charAt(0);
+            file = String.fromCharCode(file.charCodeAt(0) + 1);
+            position = file + position.charAt(1);
+        }
+
+        return position;
     }
 }
 
@@ -121,10 +165,13 @@ class King extends Piece {
     isAttacked() {
         let course = [];
         let attacker = '';
+        const steps = 1;
+        const skip = true;
         const straightDirections = ['Forward', 'Backward', 'Right', 'Left'];
         const diagonalDirections = ['RightDiagonalForward', 'RightDiagonalBackward', 'LeftDiagonalForward', 'LeftDiagonalBackward'];
         const straightAttackers = ['Q', 'R'];
         const diagonalAttackers = ['Q', 'B', 'P'];
+        const knight = this.getSide() == 'w' ? 'Nb' : 'Nw';
 
         for (let i = 0; i < straightDirections.length; i++) {
             let functionName = 'get' + straightDirections[i] + 'Moves';
@@ -158,6 +205,53 @@ class King extends Piece {
                     else if (course.length == 1) {
                         return true;
                     }
+                }
+            }
+        }
+
+        // Check whether the king is attacked by a knight.
+        for (let i = 0; i < diagonalDirections.length; i++) {
+            // First, go one step diagonally.
+            let functionName = 'get' + diagonalDirections[i] + 'Moves';
+            course = this[functionName](steps, skip);
+            let position;
+
+            if (course.length && (functionName == 'getRightDiagonalForwardMoves' || functionName == 'getLeftDiagonalForwardMoves')) {
+                // Then go one step forward.
+                position = this.getOneStepFurtherPosition(course[0], 'forward');
+                
+
+console.log('forward ' + course + ' ' + position);
+                // Check whether a knight stands on the end of the course.
+                if (position != course[0] && this.getChessboard().getSquare(position) && this.getChessboard().getSquare(position) == knight) {
+                    return true;
+                }
+
+                // Check the right or left square according to the previous step.
+                position = functionName == 'getRightDiagonalForwardMoves' ? this.getOneStepFurtherPosition(course[0], 'right') : this.getOneStepFurtherPosition(course[0], 'left');
+
+console.log('left / right ' + course + ' ' + position);
+                // Check whether a knight stands on the end of the course.
+                if (position != course[0] && this.getChessboard().getSquare(position) && this.getChessboard().getSquare(position) == knight) {
+                    return true;
+                }
+            }
+
+            if (course.length && (functionName == 'getRightDiagonalBackwardMoves' || functionName == 'getLeftDiagonalBackwardMoves')) {
+                // Then go one step backward.
+                position = this.getOneStepFurtherPosition(course[0], 'backward');
+
+                // Check whether a knight stands on the end of the course.
+                if (position != course[0] && this.getChessboard().getSquare(position) && this.getChessboard().getSquare(position) == knight) {
+                    return true;
+                }
+
+                // Check the right or left square according to the previous step.
+                position = functionName == 'getRightDiagonalForwardMoves' ? this.getOneStepFurtherPosition(course[0], 'right') : this.getOneStepFurtherPosition(course[0], 'left');
+
+                // Check whether a knight stands on the end of the course.
+                if (position != course[0] && this.getChessboard().getSquare(position) && this.getChessboard().getSquare(position) == knight) {
+                    return true;
                 }
             }
         }
