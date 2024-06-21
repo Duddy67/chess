@@ -103,7 +103,7 @@ function movable (chessboard, side) {
 
     return {
         // N.B: If the skip parameter is set to true, the possible friend or opponent pieces standing
-        //      in the way are not taken into account. It is mainly used for the knight moves.
+        //      in the way are not taken into account. It is mainly used with the knight moves.
         getMoves: (position, direction, steps = chessboard.getMaxSteps(), skip = false) => {
             let moves = [];
             // Temporary variables needed for diagonals.

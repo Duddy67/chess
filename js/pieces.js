@@ -56,6 +56,18 @@ class Piece {
         return this.#image;
     }
 
+    /*
+     * Returns the position gotten from an initial position after a given number
+     * of steps in a given direction.  
+     */
+    getNewPosition(fromPosition, direction, steps, skip) {
+        let newPosition = this.#move.getMoves(fromPosition, direction, steps, skip);
+
+        // An empty array means boundary effect. If so, return the initial position.
+        // Otherwise, return the last element (ie: position) of the array.
+        return newPosition.length ? newPosition[newPosition.length - 1] : fromPosition;
+    }
+
     // Methods that return the ending position after a given number of steps on the board in a specific direction. 
 
     getForwardMoves(steps, skip) {
@@ -95,7 +107,7 @@ class Piece {
     }
 
     /*
-     * Computes the position after a step is made from a given position to a given direction.
+     * Computes the position of a step made from a given position to a given direction.
      */
     getOneStepFurtherPosition(position, direction) {
         if (this.#side == 'w' && direction == 'forward' && parseInt(position.charAt(1)) < 8) {
@@ -316,47 +328,29 @@ class Bishop extends Piece {
 }
 
 class Knight extends Piece {
-    #stepable;
 
     constructor(chessboard, side, position) {
         super(chessboard, side, 'N', position);
-        this.#stepable = stepable(chessboard, side);
-    }
-
-    /*
-     * Returns the coordinates of two steps went from a given position in a given direction.
-     * If a boundary effect is detected, the given position is returned.
-     * N.B: This function is only used for knight pieces due to their specific moves.
-     */
-    #goTwoSteps(position, direction) {
-        const initialPosition = position;
-        const functionName = 'this.#stepable.goOneStep' + direction;
-
-        for (let i = 0; i < 2; i++) {
-            let previousPosition = position;
-            // N.B: Using eval is not risky here as it's called inside the Chess anonymous
-            //      function scope. Thus, no one can modify the eval argument from the outside.
-            position = eval(`${functionName}(position)`);
-
-            if (position == previousPosition) {
-                return initialPosition;
-            }
-        }
-
-        return position;
     }
 
     // Overwritten functions to fit the knight specific moves.
 
+    /*
+     * Computes the 2 possible moves of a knight when it's moved forward.
+     */
     #getForwardMoves(position, direction) {
         const initialPosition = position;
         let moves = [];
-        let forwardPosition = this.#goTwoSteps(position, 'Forward');
+        const skip = true;
 
-        // No boundary effect.
+        // First move: Go 2 steps forward skipping over the possible pieces in the way.
+        let forwardPosition = this.getNewPosition(position, 'forward', 2, skip);
+
+        // Check for boundary effect.
         if (forwardPosition != position) {
-            const functionName = 'this.#stepable.goOneStep' + direction;
-            position = eval(`${functionName}(forwardPosition)`);
+            // Then from there, go 1 step to the given direction (ie: left or right). 
+            // N.B: No need to skip over possible pieces in the way as it's the destination square.
+            position = this.getNewPosition(forwardPosition, direction, 1);
 
             // No boundary effect.
             if (position != forwardPosition) {
@@ -364,11 +358,13 @@ class Knight extends Piece {
             }
         }
 
-        forwardPosition = this.#stepable.goOneStepForward(initialPosition);
+        // Second move: now go 1 step forward skipping over the possible pieces in the way.
+        forwardPosition = this.getNewPosition(initialPosition, 'forward', 1, skip);
 
         // No boundary effect.
         if (forwardPosition != initialPosition) {
-            position = this.#goTwoSteps(forwardPosition, direction);
+            // Then from there, go 2 steps to the given direction (ie: left or right)
+            position = this.getNewPosition(forwardPosition, direction, 2, skip);
 
             // No boundary effect.
             if (position != forwardPosition) {
@@ -379,15 +375,19 @@ class Knight extends Piece {
         return moves;
     }
 
+    /*
+     * Computes the 2 possible moves of a knight when it's moved backward.
+     */
     #getBackwardMoves(position, direction) {
         const initialPosition = position;
         let moves = [];
-        let backwardPosition = this.#goTwoSteps(position, 'Backward');
+        const skip = true;
+
+        let backwardPosition = this.getNewPosition(position, 'backward', 2, skip);
 
         // No boundary effect.
         if (backwardPosition != position) {
-            const functionName = 'this.#stepable.goOneStep' + direction;
-            position = eval(`${functionName}(backwardPosition)`);
+            position = this.getNewPosition(backwardPosition, direction, 1);
 
             // No boundary effect.
             if (position != backwardPosition) {
@@ -395,11 +395,11 @@ class Knight extends Piece {
             }
         }
 
-        backwardPosition = this.#stepable.goOneStepBackward(initialPosition);
+        backwardPosition = this.getNewPosition(initialPosition, 'backward', 1, skip);
 
         // No boundary effect.
         if (backwardPosition != initialPosition) {
-            position = this.#goTwoSteps(backwardPosition, direction);
+            position = this.getNewPosition(backwardPosition, direction, 2, skip);
 
             // No boundary effect.
             if (position != backwardPosition) {
@@ -413,12 +413,13 @@ class Knight extends Piece {
     getMoves() {
         let moves = [];
 
-        moves = moves.concat(this.#getForwardMoves(this.getPosition(), 'Left'),
-                             this.#getForwardMoves(this.getPosition(), 'Right'),
-                             this.#getBackwardMoves(this.getPosition(), 'Left'),
-                             this.#getBackwardMoves(this.getPosition(), 'Right')
+        moves = moves.concat(this.#getForwardMoves(this.getPosition(), 'left'),
+                             this.#getForwardMoves(this.getPosition(), 'right'),
+                             this.#getBackwardMoves(this.getPosition(), 'left'),
+                             this.#getBackwardMoves(this.getPosition(), 'right')
         );
 
+        // Check for possible friend pieces standing on the destination square.
         for (let i = 0; i < moves.length; i++) {
             let square = this.getChessboard().getSquare(moves[i]);
 
