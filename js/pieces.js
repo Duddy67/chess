@@ -1,4 +1,3 @@
-
 /*
  * Super class that contains the attributes and methods common to all chess pieces.
  */
@@ -64,8 +63,9 @@ class Piece {
         let newPosition = this.#move.getMoves(fromPosition, direction, steps, skip);
 
         // An empty array means boundary effect. If so, return the initial position.
+        // The array length has to be equal to the number of steps. If not so, return the initial position.
         // Otherwise, return the last element (ie: position) of the array.
-        return newPosition.length ? newPosition[newPosition.length - 1] : fromPosition;
+        return newPosition.length && newPosition.length == steps ? newPosition[newPosition.length - 1] : fromPosition;
     }
 
     // Methods that return the ending position after a given number of steps on the board in a specific direction. 
@@ -105,50 +105,6 @@ class Piece {
     setPosition(position) {
         this.#position = position;
     }
-
-    /*
-     * Computes the position of a step made from a given position to a given direction.
-     */
-    getOneStepFurtherPosition(position, direction) {
-        if (this.#side == 'w' && direction == 'forward' && parseInt(position.charAt(1)) < 8) {
-            const rank = parseInt(position.charAt(1)) + 1;
-            position = position.charAt(0) + rank;
-        }
-        else if (this.#side == 'b' && direction == 'forward' && parseInt(position.charAt(1)) > 1) {
-            const rank = parseInt(position.charAt(1)) - 1;
-            position = position.charAt(0) + rank;
-        }
-        else if (this.#side == 'w' && direction == 'backward' && parseInt(position.charAt(1)) > 1) {
-            const rank = parseInt(position.charAt(1)) - 1;
-            position = position.charAt(0) + rank;
-        }
-        else if (this.#side == 'b' && direction == 'backward' && parseInt(position.charAt(1)) < 8) {
-            const rank = parseInt(position.charAt(1)) + 1;
-            position = position.charAt(0) + rank;
-        }
-        else if (this.#side == 'w' && direction == 'right' && position.charAt(0) < 'h') {
-            let file = position.charAt(0);
-            file = String.fromCharCode(file.charCodeAt(0) + 1);
-            position = file + position.charAt(1);
-        }
-        else if (this.#side == 'b' && direction == 'right' && position.charAt(0) > 'a') {
-            let file = position.charAt(0);
-            file = String.fromCharCode(file.charCodeAt(0) - 1);
-            position = file + position.charAt(1);
-        }
-        else if (this.#side == 'w' && direction == 'left' && position.charAt(0) > 'a') {
-            let file = position.charAt(0);
-            file = String.fromCharCode(file.charCodeAt(0) - 1);
-            position = file + position.charAt(1);
-        }
-        else if (this.#side == 'b' && direction == 'left' && position.charAt(0) < 'h') {
-            let file = position.charAt(0);
-            file = String.fromCharCode(file.charCodeAt(0) + 1);
-            position = file + position.charAt(1);
-        }
-
-        return position;
-    }
 }
 
 // Children classes that create the chess pieces and their specificities.
@@ -177,14 +133,13 @@ class King extends Piece {
     isAttacked() {
         let course = [];
         let attacker = '';
-        const steps = 1;
         const skip = true;
         const straightDirections = ['Forward', 'Backward', 'Right', 'Left'];
-        const diagonalDirections = ['RightDiagonalForward', 'RightDiagonalBackward', 'LeftDiagonalForward', 'LeftDiagonalBackward'];
         const straightAttackers = ['Q', 'R'];
+        const diagonalDirections = ['RightDiagonalForward', 'RightDiagonalBackward', 'LeftDiagonalForward', 'LeftDiagonalBackward'];
         const diagonalAttackers = ['Q', 'B', 'P'];
-        const knight = this.getSide() == 'w' ? 'Nb' : 'Nw';
 
+        // Check for straight attacks.
         for (let i = 0; i < straightDirections.length; i++) {
             let functionName = 'get' + straightDirections[i] + 'Moves';
             course = this[functionName]();
@@ -200,6 +155,7 @@ class King extends Piece {
             }
         }
 
+        // Check for diagonal attacks.
         for (let i = 0; i < diagonalDirections.length; i++) {
             let functionName = 'get' + diagonalDirections[i] + 'Moves';
             course = this[functionName]();
@@ -221,50 +177,52 @@ class King extends Piece {
             }
         }
 
-        // Check whether the king is attacked by a knight.
-        for (let i = 0; i < diagonalDirections.length; i++) {
-            // First, go one step diagonally.
-            let functionName = 'get' + diagonalDirections[i] + 'Moves';
-            course = this[functionName](steps, skip);
-            let position;
+        // Check for knight attacks.
 
-            if (course.length && (functionName == 'getRightDiagonalForwardMoves' || functionName == 'getLeftDiagonalForwardMoves')) {
-                // Then go one step forward.
-                position = this.getOneStepFurtherPosition(course[0], 'forward');
-                
+        const lftRgt = [['left', 'right'], ['left', 'right']];
+        const fwdBwd = ['forward', 'backward'];
+        // Compute the side of the opponent knight.
+        const knight = this.getSide() == 'w' ? 'Nb' : 'Nw';
+        let knightPositions = [];
 
-console.log('forward ' + course + ' ' + position);
-                // Check whether a knight stands on the end of the course.
-                if (position != course[0] && this.getChessboard().getSquare(position) && this.getChessboard().getSquare(position) == knight) {
-                    return true;
+        // Get the possible knight positions.
+        for (let i = 0; i < lftRgt.length; i++) {
+            for (let j = 0; j < lftRgt[i].length; j++) {
+                // First move: Go 2 steps forward or backward skipping over the possible pieces in the way.
+                let tmpPosition = this.getNewPosition(this.getPosition(), fwdBwd[i], 2, skip);
+
+                // Check for boundary effect.
+                if (tmpPosition != this.getPosition()) {
+                    // Then from there, go 1 step to the left or to the right. 
+                    // N.B: No need to skip over possible pieces in the way as it's the destination square.
+                    let position = this.getNewPosition(tmpPosition, lftRgt[i][j], 1);
+
+                    // No boundary effect.
+                    if (position != tmpPosition) {
+                        knightPositions.push(position);
+                    }
                 }
 
-                // Check the right or left square according to the previous step.
-                position = functionName == 'getRightDiagonalForwardMoves' ? this.getOneStepFurtherPosition(course[0], 'right') : this.getOneStepFurtherPosition(course[0], 'left');
+                // Second move: now go 1 step forward or backward skipping over the possible pieces in the way.
+                tmpPosition = this.getNewPosition(this.getPosition(), fwdBwd[i], 1, skip);
 
-console.log('left / right ' + course + ' ' + position);
-                // Check whether a knight stands on the end of the course.
-                if (position != course[0] && this.getChessboard().getSquare(position) && this.getChessboard().getSquare(position) == knight) {
-                    return true;
+                // No boundary effect.
+                if (tmpPosition != this.getPosition()) {
+                    // Then from there, go 1 step to the left or to the right. 
+                    let position = this.getNewPosition(tmpPosition, lftRgt[i][j], 2, skip);
+
+                    // No boundary effect.
+                    if (position != tmpPosition) {
+                        knightPositions.push(position);
+                    }
                 }
             }
+        }
 
-            if (course.length && (functionName == 'getRightDiagonalBackwardMoves' || functionName == 'getLeftDiagonalBackwardMoves')) {
-                // Then go one step backward.
-                position = this.getOneStepFurtherPosition(course[0], 'backward');
-
-                // Check whether a knight stands on the end of the course.
-                if (position != course[0] && this.getChessboard().getSquare(position) && this.getChessboard().getSquare(position) == knight) {
-                    return true;
-                }
-
-                // Check the right or left square according to the previous step.
-                position = functionName == 'getRightDiagonalForwardMoves' ? this.getOneStepFurtherPosition(course[0], 'right') : this.getOneStepFurtherPosition(course[0], 'left');
-
-                // Check whether a knight stands on the end of the course.
-                if (position != course[0] && this.getChessboard().getSquare(position) && this.getChessboard().getSquare(position) == knight) {
-                    return true;
-                }
+        // Check for possible opponent knight.
+        for (let i = 0; i < knightPositions.length; i++) {
+            if (this.getChessboard().getSquare(knightPositions[i]) && this.getChessboard().getSquare(knightPositions[i]) == knight) {
+                return true;
             }
         }
 
@@ -328,96 +286,49 @@ class Bishop extends Piece {
 }
 
 class Knight extends Piece {
+    #lftRgt = [['left', 'right'], ['left', 'right']];
+    #fwdBwd = ['forward', 'backward'];
 
     constructor(chessboard, side, position) {
         super(chessboard, side, 'N', position);
     }
 
-    // Overwritten functions to fit the knight specific moves.
-
-    /*
-     * Computes the 2 possible moves of a knight when it's moved forward.
-     */
-    #getForwardMoves(position, direction) {
-        const initialPosition = position;
-        let moves = [];
-        const skip = true;
-
-        // First move: Go 2 steps forward skipping over the possible pieces in the way.
-        let forwardPosition = this.getNewPosition(position, 'forward', 2, skip);
-
-        // Check for boundary effect.
-        if (forwardPosition != position) {
-            // Then from there, go 1 step to the given direction (ie: left or right). 
-            // N.B: No need to skip over possible pieces in the way as it's the destination square.
-            position = this.getNewPosition(forwardPosition, direction, 1);
-
-            // No boundary effect.
-            if (position != forwardPosition) {
-                moves.push(position);
-            }
-        }
-
-        // Second move: now go 1 step forward skipping over the possible pieces in the way.
-        forwardPosition = this.getNewPosition(initialPosition, 'forward', 1, skip);
-
-        // No boundary effect.
-        if (forwardPosition != initialPosition) {
-            // Then from there, go 2 steps to the given direction (ie: left or right)
-            position = this.getNewPosition(forwardPosition, direction, 2, skip);
-
-            // No boundary effect.
-            if (position != forwardPosition) {
-                moves.push(position);
-            }
-        }
-
-        return moves;
-    }
-
-    /*
-     * Computes the 2 possible moves of a knight when it's moved backward.
-     */
-    #getBackwardMoves(position, direction) {
-        const initialPosition = position;
-        let moves = [];
-        const skip = true;
-
-        let backwardPosition = this.getNewPosition(position, 'backward', 2, skip);
-
-        // No boundary effect.
-        if (backwardPosition != position) {
-            position = this.getNewPosition(backwardPosition, direction, 1);
-
-            // No boundary effect.
-            if (position != backwardPosition) {
-                moves.push(position);
-            }
-        }
-
-        backwardPosition = this.getNewPosition(initialPosition, 'backward', 1, skip);
-
-        // No boundary effect.
-        if (backwardPosition != initialPosition) {
-            position = this.getNewPosition(backwardPosition, direction, 2, skip);
-
-            // No boundary effect.
-            if (position != backwardPosition) {
-                moves.push(position);
-            }
-        }
-
-        return moves;
-    }
-
     getMoves() {
         let moves = [];
+        const skip = true;
 
-        moves = moves.concat(this.#getForwardMoves(this.getPosition(), 'left'),
-                             this.#getForwardMoves(this.getPosition(), 'right'),
-                             this.#getBackwardMoves(this.getPosition(), 'left'),
-                             this.#getBackwardMoves(this.getPosition(), 'right')
-        );
+        for (let i = 0; i < this.#lftRgt.length; i++) {
+            for (let j = 0; j < this.#lftRgt[i].length; j++) {
+                // First move: Go 2 steps forward or backward skipping over the possible pieces in the way.
+                let tmpPosition = this.getNewPosition(this.getPosition(), this.#fwdBwd[i], 2, skip);
+
+                // Check for boundary effect.
+                if (tmpPosition != this.getPosition()) {
+                    // Then from there, go 1 step to the left or to the right. 
+                    // N.B: No need to skip over possible pieces in the way as it's the destination square.
+                    let position = this.getNewPosition(tmpPosition, this.#lftRgt[i][j], 1);
+
+                    // No boundary effect.
+                    if (position != tmpPosition) {
+                        moves.push(position);
+                    }
+                }
+
+                // Second move: now go 1 step forward or backward skipping over the possible pieces in the way.
+                tmpPosition = this.getNewPosition(this.getPosition(), this.#fwdBwd[i], 1, skip);
+
+                // No boundary effect.
+                if (tmpPosition != this.getPosition()) {
+                    // Then from there, go 1 step to the left or to the right. 
+                    let position = this.getNewPosition(tmpPosition, this.#lftRgt[i][j], 2, skip);
+
+                    // No boundary effect.
+                    if (position != tmpPosition) {
+                        moves.push(position);
+                    }
+                }
+            }
+        }
 
         // Check for possible friend pieces standing on the destination square.
         for (let i = 0; i < moves.length; i++) {
