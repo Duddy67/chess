@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             hidePossibleMoves();
+            hidePossibleCastlings();
             selectedPiece = []
         }
 
@@ -49,11 +50,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (selectedPiece[0].getMoves().length) {
          //console.log(selectedPiece[0].getMoves());
                     showPossibleMoves(selectedPiece[0]);
+
+                    if (pieceType == 'K') {
+                        console.log(chessboard.canCastling(selectedPiece[0]));
+                        showPossibleCastlings(chessboard.canCastling(selectedPiece[0]));
+                    }
                 }
             }
             // The piece is unselected or another piece on the same side is clicked.
             else if (selectedPiece.length && chessboard.whoseTurnIsIt() == pieceSide) {
                 hidePossibleMoves();
+                hidePossibleCastlings();
                 // Unselect the current piece.
                 selectedPiece = []
             }
@@ -212,6 +219,18 @@ function showPossibleMoves(piece) {
 function hidePossibleMoves() {
     document.querySelectorAll('.move').forEach((square) => {
         square.classList.remove('move');
+    });
+}
+
+function showPossibleCastlings(castlings) {
+    castlings.forEach((castling) => {
+        document.getElementById(castling).classList.add('castling');
+    });
+}
+
+function hidePossibleCastlings() {
+    document.querySelectorAll('.castling').forEach((square) => {
+        square.classList.remove('castling');
     });
 }
 

@@ -110,9 +110,22 @@ class Piece {
 // Children classes that create the chess pieces and their specificities.
 
 class King extends Piece {
+    #moved;
 
     constructor(chessboard, side, position) {
         super(chessboard, side, 'K', position);
+        this.#moved = false;
+    }
+
+    hasMoved() {
+        return this.#moved;
+    }
+
+    /*
+     * Once moved, the king can't castling no more.
+     */
+    moved() {
+        this.#moved = true;
     }
 
     getMoves() {
@@ -252,9 +265,22 @@ class Queen extends Piece {
 }
 
 class Rook extends Piece {
+    #moved;
 
     constructor(chessboard, side, position) {
         super(chessboard, side, 'R', position);
+        this.#moved = false;
+    }
+
+    hasMoved() {
+        return this.#moved;
+    }
+
+    /*
+     * Once moved, the king can't castling no more.
+     */
+    moved() {
+        this.#moved = true;
     }
 
     getMoves() {

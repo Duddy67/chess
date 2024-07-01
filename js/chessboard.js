@@ -30,6 +30,8 @@ class Chessboard {
 
     #history = [];
 
+    #castlingSquares = ['1c', '1g', '8c', '8g'];
+
     constructor(board) {
         this.#board = board !== undefined ? board : this.#board;
         this.#setPieces();
@@ -184,6 +186,10 @@ class Chessboard {
         return this.#history;
     }
 
+    getCastlingSquares() {
+        return this.#castlingSquares;
+    }
+
     /*
      * Moves a given piece to a given position.
      */
@@ -230,14 +236,17 @@ class Chessboard {
         this.#board[this.#coordinates[from.charAt(1)]][this.#coordinates[from.charAt(0)]] = '';
         this.#board[this.#coordinates[position.charAt(1)]][this.#coordinates[position.charAt(0)]] = code;
 
-        // The move can't be played as the king of the side that is playing is under attack.
+        // The move can't be played as the king of the side that is playing is (still) under attack.
         if (this.isKingAttacked()) {
           //console.log('King ' + this.whoseTurnIsIt() + ' is attacked');
           this.#stepBack(data);
-console.log(this.#pieces);
-console.log(this.#board);
 
           return false;
+        }
+
+        if ((piece.getType() == 'K' || piece.getType() == 'R') && !piece.hasMoved()) {
+            // The king or rook can no longer castling.
+            piece.moved();
         }
 
         this.switchSides();
@@ -260,6 +269,65 @@ console.log(this.#board);
                 return this.#pieces[i].isAttacked();
             }
         }
+    }
+
+    canCastling(king) {
+        let castlings = [];
+        // First, make sure the king hasn't moved and is not attacked.
+        if (!king.hasMoved() && !king.isAttacked()) {
+            // Get the king's rank and the rank number according to the king's side.
+            const rank = king.getSide() == 'w' ? this.#board[7] : this.#board[0];
+            const rankNumber = king.getSide() == 'w' ? 1 : 8;
+            const initialPosition = king.getPosition();
+            let isAttacked = false;
+
+            // Check for long castle.
+            if (rank[0] == 'R' + king.getSide()) {
+                const rook = this.getPieceAtPosition('a' + rankNumber);
+                // Check the rook hasn't moved and there is no piece between the king and the rook. 
+                if (!rook.hasMoved() && rank[1] == '' && rank[2] == '' && rank[3] == '') {
+                    // Now make sure the king is not attacked on the way.
+                    const castlingSteps = ['b', 'c', 'd'];
+                    // Check for each position.
+                    for (let i = 0; i < castlingSteps.length; i++) {
+                        king.setPosition(castlingSteps[i] + rankNumber);
+
+                        if (king.isAttacked()) {
+                            isAttacked = true;
+                        }
+                    }
+
+                    if (!isAttacked) {
+                        castlings.push('c' + rankNumber);
+                    }
+                }
+            }
+
+            // Check for short castle.
+            if (rank[7] == 'R' + king.getSide()) {
+                const rook = this.getPieceAtPosition('h' + rankNumber);
+                if (!rook.hasMoved() && rank[5] == '' && rank[6] == '') {
+                    const castlingSteps = ['f', 'g'];
+
+                    for (let i = 0; i < castlingSteps.length; i++) {
+                        king.setPosition(castlingSteps[i] + rankNumber);
+
+                        if (king.isAttacked()) {
+                            isAttacked = true;
+                        }
+                    }
+
+                    if (!isAttacked) {
+                        castlings.push('g' + rankNumber);
+                    }
+                }
+            }
+
+            // Set the king back to its initial position.
+            king.setPosition(initialPosition);
+        }    
+
+        return castlings;
     }
 
     /*
