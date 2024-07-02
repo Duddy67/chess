@@ -26,6 +26,20 @@ document.addEventListener('DOMContentLoaded', () => {
                         movePiece(from, position);
                     }
                 }
+                // A king is castling.
+                else if (selectedPiece[0].getType() == 'K' && !selectedPiece[0].hasMoved() && chessboard.getCastlingSquares().includes(position)) {
+                    // Store the king's starting position.
+                    const from = selectedPiece[0].getPosition();
+                    // Get the rook positions before and after the castling.
+                    const rookPositions = chessboard.getCastlingRookPositions(selectedPiece[0], position);
+                    // Castling.
+                    chessboard.movePiece(selectedPiece[0], position);
+
+                    movePiece(from, position);
+                    movePiece(rookPositions.from, rookPositions.to);
+//console.log('Castling ' + position);
+//console.log(chessboard.getCastlingSquares());
+                }
 
             }
 

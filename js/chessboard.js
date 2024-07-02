@@ -30,7 +30,7 @@ class Chessboard {
 
     #history = [];
 
-    #castlingSquares = ['1c', '1g', '8c', '8g'];
+    #castlingSquares = ['c1', 'g1', 'c8', 'g8'];
 
     constructor(board) {
         this.#board = board !== undefined ? board : this.#board;
@@ -148,6 +148,20 @@ class Chessboard {
         this.#board[this.#coordinates[data.to.charAt(1)]][this.#coordinates[data.to.charAt(0)]] = data.capturedPiece ? data.capturedPiece.getCode() : '';
     }
 
+    /*
+     * Returns the rook positions before and after the castling.
+     */
+    getCastlingRookPositions(king, position) {
+        const rankNumber = king.getSide() == 'w' ? 1 : 8;
+        // Get the current rook position.
+        const rookPositions = {from: '', to: ''};
+        rookPositions.from = position.charAt(0) == 'g' ? 'h' + rankNumber : 'a' + rankNumber;
+        // Get rook position after castling.
+        rookPositions.to = position.charAt(0) == 'g' ? 'f' + rankNumber : 'd' + rankNumber;
+
+        return rookPositions;
+    }
+
     getPieces() {
         return this.#pieces;
     }
@@ -226,6 +240,22 @@ class Chessboard {
             // Replace the promoted pawn by the selected new piece.
             this.#pieces.splice(piece.getIndex(), 1, this.#createPiece(type, side, position, piece.getIndex()));
             actions.push(position + type);
+        }
+        // King is castling.
+        else if (piece.getType() == 'K' && !piece.hasMoved() && this.#castlingSquares.includes(position)) {
+            const rookPositions = this.getCastlingRookPositions(piece, position);
+
+            // King castling.
+            piece.setPosition(position);
+            // Get the castling rook.
+            const rook = this.getPieceAtPosition(rookPositions.from);
+            // Rook castling.
+            rook.setPosition(rookPositions.to);
+            rook.moved();
+
+            // Update the castling rook on the chessboard.
+            this.#board[this.#coordinates[rookPositions.from.charAt(1)]][this.#coordinates[rookPositions.from.charAt(0)]] = '';
+            this.#board[this.#coordinates[rookPositions.to.charAt(1)]][this.#coordinates[rookPositions.to.charAt(0)]] = 'R' + piece.getSide();
         }
         else {
             // Set the piece's new position.
