@@ -99,7 +99,12 @@ class Chessboard {
      * Gets the move data together.
      */
     #getMove(pieceCode, from, to, actions) {
-        const move = pieceCode.charAt(0) + to;
+        let move = pieceCode.charAt(0) + to;
+
+        // Check for possible castling.
+        if (actions.length && actions[0].startsWith('O-O')){
+            move = actions[0];
+        }
 
         const data = {
             pieceCode: pieceCode,
@@ -256,6 +261,10 @@ class Chessboard {
             // Update the castling rook on the chessboard.
             this.#board[this.#coordinates[rookPositions.from.charAt(1)]][this.#coordinates[rookPositions.from.charAt(0)]] = '';
             this.#board[this.#coordinates[rookPositions.to.charAt(1)]][this.#coordinates[rookPositions.to.charAt(0)]] = 'R' + piece.getSide();
+
+            const action = position == 'g1' || position == 'g8' ? 'O-O' : 'O-O-O'; 
+            actions.push(action);
+
         }
         else {
             // Set the piece's new position.

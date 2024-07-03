@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     movePiece(from, position);
                     movePiece(rookPositions.from, rookPositions.to);
 //console.log('Castling ' + position);
-//console.log(chessboard.getCastlingSquares());
                 }
 
             }
@@ -291,6 +290,7 @@ function updateHistory(chessboard) {
 
     const index = document.createTextNode(chessboard.getHistory().length);
     tdIndex.appendChild(index);
+
     const latestMove = document.createTextNode(history[history.length - 1].move);
     tdMove.appendChild(latestMove);
     tr.appendChild(tdIndex);
