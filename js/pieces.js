@@ -381,6 +381,32 @@ class Pawn extends Piece {
         this.#promoted = false;
     }
 
+    #enPassant() {
+        const chessboard = this.getChessboard();
+        let enPassant = '';
+
+        if (chessboard.getHistory().length) {
+            // Get the latest move of the opponent side.
+            const history = chessboard.getHistory()[chessboard.getHistory().length - 1];
+            // Compute the rank numbers that match a 2 step move of an opponent pawn.
+            const fromRank = history.pieceCode.charAt(1) == 'w' ? 2 : 7;
+            const toRank = history.pieceCode.charAt(1) == 'w' ? 4 : 5;
+
+            // Check the latest piece played is a pawn that moved 2 steps forward.
+            if (history.pieceCode.charAt(0) == 'P' && history.from.charAt(1) == fromRank && history.to.charAt(1) == toRank) {
+                // Now verify if our pawn currently stands on the left or right side of the opponent pawn.
+                if (this.#stepable.goOneStepRight(history.to) == this.getPosition() || this.#stepable.goOneStepLeft(history.to) == this.getPosition()) {
+                    // Get the rank number just behind the opponent pawn.  
+                    const backRank = history.pieceCode.charAt(1) == 'w' ? 3 : 6;
+                    // Set the en passant square code.
+                    enPassant = history.to.charAt(0) + backRank;
+                }
+            }
+        }
+
+        return enPassant;
+    }
+
     getMoves() {
         // Check the number of steps allowed (ie: 2 or 1) according to the pawn rank position.
         let steps = (this.getSide() == 'w' && this.getPosition().charAt(1) == 2) || (this.getSide() == 'b' && this.getPosition().charAt(1) == 7) ? 2 : 1;
@@ -431,7 +457,12 @@ class Pawn extends Piece {
             });
         }
 
-        // TODO Check for the "en passant" move.
+        // Check for the "en passant" move.
+        const enPassant = this.#enPassant();
+
+        if (enPassant) {
+            moves.push(enPassant);
+        }
 
         return moves;
     }

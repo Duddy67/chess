@@ -264,7 +264,17 @@ class Chessboard {
 
             const action = position == 'g1' || position == 'g8' ? 'O-O' : 'O-O-O'; 
             actions.push(action);
-
+        }
+        // En passant
+        else if (piece.getType() == 'P' && position.charAt(0) != piece.getPosition().charAt(0) && !this.getSquare(position)) {
+            // Compute the opponent pawn position, which is on the left or right side of the pawn.  
+            const opponentPawnPosition = position.charAt(0) + piece.getPosition().charAt(1);
+            const opponentPawn = this.getPieceAtPosition(opponentPawnPosition);
+            opponentPawn.setPosition('xx');
+            data.capturedPiece = opponentPawn;
+            actions.push('enPassant');
+            //
+            this.#board[this.#coordinates[opponentPawnPosition.charAt(1)]][this.#coordinates[opponentPawnPosition.charAt(0)]] = '';
         }
         else {
             // Set the piece's new position.

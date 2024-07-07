@@ -23,7 +23,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     // Check the move can be played.
                     if (chessboard.movePiece(selectedPiece[0], position)) {
-                        movePiece(from, position);
+
+                        // En passant (ie: a pawn is moved diagonally to an empty square).
+                        if (selectedPiece[0].getType() == 'P' && position.charAt(0) != from.charAt(0)) {
+                            // Get the pawn rank number before it's moved. 
+                            const rank = from.charAt(1);
+                            // First, move the pawn to the left or right side in order to capture the opponent pawn.
+                            movePiece(from, position.charAt(0) + rank);
+                            // Then, move the pawn to the initial end position.
+                            movePiece(position.charAt(0) + rank, position);
+                        }
+                        // Regular move.
+                        else {
+                            movePiece(from, position);
+                        }
                     }
                 }
                 // A king is castling.
@@ -37,7 +50,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     movePiece(from, position);
                     movePiece(rookPositions.from, rookPositions.to);
-//console.log('Castling ' + position);
+                }
+                else if (selectedPiece[0].getType() == 'P' && position.charAt(0) != selectedPiece[0].getPosition().charAt(0)) {
+                    //const toSquare = document.getElementById(to);
+                    // Get the rank number 
+                    const backRank = selectedPiece[0].getSide() == 'w' ? 5 : 4;
+                    const from = selectedPiece[0].getPosition();
+                    chessboard.movePiece(selectedPiece[0], position);
+
                 }
 
             }
