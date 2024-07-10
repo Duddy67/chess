@@ -96,29 +96,6 @@ class Chessboard {
     }
 
     /*
-     * Gets the move data together.
-     */
-    #getMove(pieceCode, from, to, actions) {
-        let move = pieceCode.charAt(0) + to;
-
-        // Check for possible castling.
-        if (actions.length && actions[0].startsWith('O-O')){
-            move = actions[0];
-        }
-
-        const data = {
-            pieceCode: pieceCode,
-            from: from,
-            to: to,
-            move: move,
-            actions: actions,
-            board: this.#board
-        }
-
-        return data;
-    }
-
-    /*
      * Creates and sends the move event.
      */
     #sendMoveEvent(data) {
@@ -132,15 +109,41 @@ class Chessboard {
     }
 
     /*
+     * Creates and sends the kingAttacked event.
+     */
+    #sendKingAttackedEvent() {
+        const kingPosition = this.getKingPosition(this.whoseTurnIsIt());
+
+        const event = new CustomEvent('kingAttacked', {
+            detail: {
+                kingPosition: kingPosition
+            }
+        });
+
+        document.dispatchEvent(event);
+    }
+
+    /*
      * Reset the pieces and the board to their previous state.
      */
     #stepBack(data) {
         // Move the piece back to its starting position.
         data.piece.setPosition(data.from);
+        // Check for "en passant".
+        const enPassant = data.specialMove == 'e.p' ? true : false;
+        // Get the position of the possible captured piece.
+        let capturedPiecePosition = data.to;
 
         if (data.capturedPiece) {
-           // Bring the captured piece back on the board.
-           data.capturedPiece.setPosition(data.to);
+            if (enPassant) {
+                // Get the pawn rank number before it's moved. 
+                const rank = data.from.charAt(1);
+                // Get the position of the opponent pawn to be captured which is to the left or right side of the pawn.
+                capturedPiecePosition = data.to.charAt(0) + rank;
+            }
+
+            // Bring the captured piece back on the board.
+            data.capturedPiece.setPosition(capturedPiecePosition);
         }
 
         if (data.newPiece) {
@@ -148,9 +151,15 @@ class Chessboard {
             this.#pieces.splice(data.piece.getIndex(), 1, data.piece);
         }
 
+        const endSquare = data.capturedPiece && !enPassant ? data.capturedPiece.getCode() : '';
+
         // Set the board to its previous state.
         this.#board[this.#coordinates[data.from.charAt(1)]][this.#coordinates[data.from.charAt(0)]] = data.piece.getCode();
-        this.#board[this.#coordinates[data.to.charAt(1)]][this.#coordinates[data.to.charAt(0)]] = data.capturedPiece ? data.capturedPiece.getCode() : '';
+        this.#board[this.#coordinates[data.to.charAt(1)]][this.#coordinates[data.to.charAt(0)]] = endSquare;
+
+        if (enPassant) {
+            this.#board[this.#coordinates[capturedPiecePosition.charAt(1)]][this.#coordinates[capturedPiecePosition.charAt(0)]] = data.capturedPiece.getCode();
+        }
     }
 
     /*
@@ -213,14 +222,14 @@ class Chessboard {
      * Moves a given piece to a given position.
      */
     movePiece(piece, position, newPiece) {
-        let actions = [];
-
-        // Collect data in case of step back.
+        // Collect the move data for history and in case of step back.
         let data = {
             'piece': piece,
             'from': piece.getPosition(),
             'to': position,
             'newPiece': newPiece === undefined ? null : newPiece,
+            'specialMove': null,
+            'capturedPiece': null,
         };
 
         // A piece is captured.
@@ -229,7 +238,6 @@ class Chessboard {
             const capturedPiece = this.getPieceAtPosition(position);
             capturedPiece.setPosition('xx');
             data.capturedPiece = capturedPiece;
-            actions.push('x');
         }
 
         // Get the starting position.
@@ -244,7 +252,7 @@ class Chessboard {
 
             // Replace the promoted pawn by the selected new piece.
             this.#pieces.splice(piece.getIndex(), 1, this.#createPiece(type, side, position, piece.getIndex()));
-            actions.push(position + type);
+            data.specialMove = 'promotion';
         }
         // King is castling.
         else if (piece.getType() == 'K' && !piece.hasMoved() && this.#castlingSquares.includes(position)) {
@@ -262,18 +270,18 @@ class Chessboard {
             this.#board[this.#coordinates[rookPositions.from.charAt(1)]][this.#coordinates[rookPositions.from.charAt(0)]] = '';
             this.#board[this.#coordinates[rookPositions.to.charAt(1)]][this.#coordinates[rookPositions.to.charAt(0)]] = 'R' + piece.getSide();
 
-            const action = position == 'g1' || position == 'g8' ? 'O-O' : 'O-O-O'; 
-            actions.push(action);
+            data.specialMove = position == 'g1' || position == 'g8' ? 'O-O' : 'O-O-O'; 
         }
-        // En passant
+        // En passant (ie: a pawn is moved diagonally to an empty square).
         else if (piece.getType() == 'P' && position.charAt(0) != piece.getPosition().charAt(0) && !this.getSquare(position)) {
             // Compute the opponent pawn position, which is on the left or right side of the pawn.  
             const opponentPawnPosition = position.charAt(0) + piece.getPosition().charAt(1);
             const opponentPawn = this.getPieceAtPosition(opponentPawnPosition);
+            // The opponent pawn is captured.
             opponentPawn.setPosition('xx');
             data.capturedPiece = opponentPawn;
-            actions.push('enPassant');
-            //
+            data.specialMove = 'e.p';
+            // Remove the opponent pawn from the board.
             this.#board[this.#coordinates[opponentPawnPosition.charAt(1)]][this.#coordinates[opponentPawnPosition.charAt(0)]] = '';
         }
         else {
@@ -287,7 +295,6 @@ class Chessboard {
 
         // The move can't be played as the king of the side that is playing is (still) under attack.
         if (this.isKingAttacked()) {
-          //console.log('King ' + this.whoseTurnIsIt() + ' is attacked');
           this.#stepBack(data);
 
           return false;
@@ -300,13 +307,18 @@ class Chessboard {
 
         this.switchSides();
 
-        const move = this.#getMove(code, from, position, actions);
-        this.#history.push(move);
+        // Add some extra information to data.
+        data.board = this.#board;
+        data.pieceCode = piece.getCode();
+        data.move = piece.getType() + position;
 
-        this.#sendMoveEvent(move);
+        this.#history.push(data);
+
+        this.#sendMoveEvent(data);
 
         if (this.isKingAttacked()) {
           console.log('King ' + this.whoseTurnIsIt() + ' is attacked');
+          this.#sendKingAttackedEvent();
         }
 
         return true;
@@ -386,6 +398,16 @@ class Chessboard {
         for (let i = 0; i < this.#pieces.length; i++) {
             if (this.#pieces[i].getPosition() == position) {
                 return this.#pieces[i];
+            }
+        }
+
+        return null;
+    }
+
+    getKingPosition(side) {
+        for (let i = 0; i < this.#pieces.length; i++) {
+            if (this.#pieces[i].getCode() == 'K' + side) {
+                return this.#pieces[i].getPosition();
             }
         }
 

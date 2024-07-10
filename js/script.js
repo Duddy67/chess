@@ -187,6 +187,10 @@ document.addEventListener('DOMContentLoaded', () => {
         //console.log(e.detail.data);
         updateHistory(chessboard);
     });
+
+    document.addEventListener('kingAttacked', (e) => {
+        console.log(e.detail.kingPosition);
+    });
 });
 
 function createChessboard(chessboard) {
