@@ -42,6 +42,9 @@
   display: none;
 }
 
+.king-attacked {
+  background-color: blue !important; 
+}
 
 .square {
   display: flex;

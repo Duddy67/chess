@@ -186,10 +186,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('move', (e) => {
         //console.log(e.detail.data);
         updateHistory(chessboard);
+        hideKingAttacked();
     });
 
     document.addEventListener('kingAttacked', (e) => {
-        console.log(e.detail.kingPosition);
+        const square = document.getElementById(e.detail.kingPosition)
+        square.classList.add('king-attacked');
     });
 });
 
@@ -270,6 +272,14 @@ function hidePossibleCastlings() {
         square.classList.remove('castling');
     });
 }
+
+function hideKingAttacked() {
+    const squares = document.getElementsByClassName('king-attacked');
+
+    if (squares.length) {
+        squares[0].classList.remove('king-attacked');
+    }
+} 
 
 /*
  * Moves a piece to a given position on the HTML chessboard. Removes a captured piece if any.
