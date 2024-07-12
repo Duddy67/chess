@@ -51,15 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     movePiece(from, position);
                     movePiece(rookPositions.from, rookPositions.to);
                 }
-                else if (selectedPiece[0].getType() == 'P' && position.charAt(0) != selectedPiece[0].getPosition().charAt(0)) {
-                    //const toSquare = document.getElementById(to);
-                    // Get the rank number 
-                    const backRank = selectedPiece[0].getSide() == 'w' ? 5 : 4;
-                    const from = selectedPiece[0].getPosition();
-                    chessboard.movePiece(selectedPiece[0], position);
-
-                }
-
             }
 
             hidePossibleMoves();

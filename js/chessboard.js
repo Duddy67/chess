@@ -279,6 +279,8 @@ class Chessboard {
             const opponentPawn = this.getPieceAtPosition(opponentPawnPosition);
             // The opponent pawn is captured.
             opponentPawn.setPosition('xx');
+            // Move the pawn diagonally.
+            piece.setPosition(position);
             data.capturedPiece = opponentPawn;
             data.specialMove = 'e.p';
             // Remove the opponent pawn from the board.

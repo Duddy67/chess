@@ -42,10 +42,6 @@
   display: none;
 }
 
-.king-attacked {
-  background-color: blue !important; 
-}
-
 .square {
   display: flex;
   justify-content: center;
@@ -91,8 +87,12 @@
   background-position: center;
 }
 
-.move-2 {
-  background: radial-gradient(circle, blue 50%, pink calc(50% + 1px));
+.king-attacked {
+  /*background-color: blue !important;*/ 
+  background-image: url("../images/king-attacked.png"), url("../images/king-attacked.png");
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .rank-numbers,
@@ -119,7 +119,11 @@
 }
 
 .castling {
-  background-color: green !important; 
+  /*background-color: green !important;*/ 
+  background-image: url("../images/castling.png"), url("../images/castling.png");
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .castling:hover {
