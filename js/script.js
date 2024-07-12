@@ -81,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Check the piece can move to one or more squares.
                 if (selectedPiece[0].getMoves().length) {
-         //console.log(selectedPiece[0].getMoves());
                     showPossibleMoves(selectedPiece[0]);
 
                     if (pieceType == 'K') {
@@ -184,7 +183,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Dispatched after each move.
     document.addEventListener('move', (e) => {
-        //console.log(e.detail.data);
         updateHistory(chessboard);
         hideKingAttacked();
     });
@@ -210,18 +208,19 @@ function createChessboard(chessboard) {
 
             // Check for the chessboard coordinate marks.
 
-            // The a1 square requires 2 mark, (a and 1).
-            if (ranks[i] == 1 && files[j] == 'a') {
-                // Use a class that manages 2 background images.
-                square.setAttribute('class', 'square-a1');
+            // The h1 square requires 2 mark, (h and 1).
+            if (ranks[i] == 1 && files[j] == 'h') {
+                let html = '<span class="rank-numbers">' + ranks[ranks.length - 1] + '</span>';
+                html += '<span class="file-letters">' + files[j] + '</span>';
+                square.innerHTML = html;
             }
             // Display the file letters all along the rank 1.
             else if (ranks[i] == 1) {
-                square.setAttribute('class', 'file-' + files[j]);
+                square.innerHTML = '<span class="file-letters">' + files[j] + '</span>';
             }
-            // Display the rank numbers all along the file a.
-            else if (files[j] == 'a') {
-                square.setAttribute('class', 'rank-' + ranks[i]);
+            // Display the rank numbers all along the file h.
+            else if (files[j] == 'h') {
+                square.innerHTML = '<span class="rank-numbers">' + ranks[i] + '</span>';
             }
 
             // Set the grid pattern to apply on the square according to the rank number.
@@ -250,14 +249,32 @@ function getSelectedPiece(pieces, position) {
 }
 
 function showPossibleMoves(piece) {
-    piece.getMoves().forEach((move) => {
-        document.getElementById(move).classList.add('move');
-    });
+    const moves = piece.getMoves();
+
+    for (let i = 0; i < moves.length; i++) {
+        const square = document.getElementById(moves[i]);
+        let capturedPiece = false;
+
+        // Check for possible captured opponent piece.
+        for (const child of square.children) {
+            if (child.tagName == 'IMG') {
+                capturedPiece = true;
+            }
+        }
+
+        if (capturedPiece) {
+            square.classList.add('capture');
+        }
+        else {
+            square.classList.add('move');
+        }
+    }
 }
 
 function hidePossibleMoves() {
-    document.querySelectorAll('.move').forEach((square) => {
+    document.querySelectorAll('.move, .capture').forEach((square) => {
         square.classList.remove('move');
+        square.classList.remove('capture');
     });
 }
 
@@ -285,17 +302,17 @@ function hideKingAttacked() {
  * Moves a piece to a given position on the HTML chessboard. Removes a captured piece if any.
  */
 function movePiece(from, to, newPiece) {
-    const fromSquare = document.getElementById(from);
-    // Get the piece to move and remove it from the square.
-    const piece = fromSquare.firstChild;
-    fromSquare.removeChild(fromSquare.firstElementChild);
+    // Get the piece to move and remove it from the starting square.
 
-    const toSquare = document.getElementById(to);
+    // N.B: Use querySelector to get the first child element of type img from the starting square (ie: id = from).
+    const piece = document.querySelector('#' + from + ' > img:first-of-type');
+    // Remove the piece from the starting square.
+    document.getElementById(from).removeChild(document.querySelector('#' + from + ' > img:first-of-type'));
 
     // A piece is captured.
-    if (toSquare.hasChildNodes()) {
+    if (document.querySelector('#' + to + ' > img:first-of-type')) {
         // Remove the captured piece.
-        toSquare.innerHTML = '';
+        document.getElementById(to).removeChild(document.querySelector('#' + to + ' > img:first-of-type'));
     }
 
     // Check for promoted pawn.
@@ -305,8 +322,18 @@ function movePiece(from, to, newPiece) {
         piece.src = 'images/' + newPiece + '.png';
     }
 
+    // Check for a possible square mark (ie: span element).
+    const mark = document.querySelector('#' + to + ' > span:first-of-type');
+
     // Put the piece on the destination square.
-    toSquare.appendChild(piece);
+
+    if (mark) {
+        // N.B: Do not use appendChild to move the piece or the span element will be deleted.
+        mark.after(piece);
+    }
+    else {
+        document.getElementById(to).appendChild(piece);
+    }
 }
 
 function updateHistory(chessboard) {
