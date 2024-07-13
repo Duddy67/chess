@@ -16,8 +16,14 @@ class Chessboard {
     #coordinates = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7,
                     '1': 7, '2': 6, '3': 5, '4': 4, '5': 3, '6': 2, '7': 1, '8': 0};
 
+    // File and rank values to set piece positions.
+    #files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+    #ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
+
     // Used to determine whose turn is it (white or black). Starts with white.
     #side = 'w';
+
+    #sideViewPoint = 'w';
 
     // The maximum steps a piece can go on the chessboard.
     #MAX_STEPS = 7;
@@ -41,10 +47,6 @@ class Chessboard {
      * Creates a piece object for each piece present on the board.
      */
     #setPieces() {
-        // File and rank values to set piece positions.
-        const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-        const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
-
         // Loop through the 2 dimensional board array.
         for (let i = 0; i < this.#board.length; i++) {
             for (let j = 0; j < this.#board[i].length; j++) {
@@ -52,7 +54,7 @@ class Chessboard {
                 if (this.#board[i][j]) {
                     const type = this.#board[i][j].charAt(0);
                     const side = this.#board[i][j].charAt(1);
-                    const position = files[j] + ranks[i];
+                    const position = this.#files[j] + this.#ranks[i];
                     let piece = this.#createPiece(type, side, position);
                     this.#pieces.push(piece);
                 }
@@ -414,5 +416,54 @@ class Chessboard {
         }
 
         return null;
+    }
+
+    getFiles() {
+        return this.#files;
+    }
+
+    getRanks() {
+        return this.#ranks;
+    }
+
+    getSideViewPoint() {
+        return this.#sideViewPoint;
+    }
+
+    flipboard() {
+        this.#sideViewPoint = this.#sideViewPoint == 'w' ? 'b' : 'w';
+
+        // Loop through the 2 dimensional chessboard array.
+        for (let i = 0; i < this.#board.length; i++) {
+            for (let j = 0; j < this.#board[i].length; j++) {
+                if (this.#board[i][j]) {
+                    // Flip sides.
+                    const side = this.#board[i][j].charAt(1) == 'w' ? 'b' : 'w';
+                    this.#board[i][j] = this.#board[i][j].charAt(0) + side;
+                }
+            }
+        }
+
+        if (this.#sideViewPoint == 'w') {
+            this.#coordinates = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7,
+                                 '1': 7, '2': 6, '3': 5, '4': 4, '5': 3, '6': 2, '7': 1, '8': 0};
+        }
+        else {
+            this.#coordinates = {'h': 0, 'g': 1, 'f': 2, 'e': 3, 'd': 4, 'c': 5, 'b': 6, 'a': 7,
+                                 '8': 7, '7': 6, '6': 5, '5': 4, '4': 3, '3': 2, '2': 1, '1': 0};
+        }
+
+        const files = this.#sideViewPoint == 'w' ? ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] : ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'];
+        const ranks = this.#sideViewPoint == 'w' ? ['8', '7', '6', '5', '4', '3', '2', '1'] : ['1', '2', '3', '4', '5', '6', '7', '8'];
+
+        for (let i = 0; i < this.#files.length; i++) {
+            this.#files[i] = files[i];
+        }
+
+        for (let i = 0; i < this.#ranks.length; i++) {
+            this.#ranks[i] = ranks[i];
+        }
+console.log(this.#coordinates);
+        this.#setPieces();
     }
 }

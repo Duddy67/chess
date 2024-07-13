@@ -412,6 +412,7 @@ class Pawn extends Piece {
         let steps = (this.getSide() == 'w' && this.getPosition().charAt(1) == 2) || (this.getSide() == 'b' && this.getPosition().charAt(1) == 7) ? 2 : 1;
         let moves = this.getForwardMoves(steps);
         const chessboard = this.getChessboard();
+//console.log(moves);
 
         // Check for any opponent piece in the way.
         for (let i = 0; i < moves.length; i++) {

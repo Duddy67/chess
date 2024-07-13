@@ -2,9 +2,13 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     const chessboard = new Chessboard();
+    chessboard.flipboard();
     createChessboard(chessboard);
+//console.log(chessboard.getFiles());
+//console.log(chessboard.getRanks());
 
     let selectedPiece = [];
+    //console.log(chessboard.getBoard());
 
     // Listen to click events coming from the chessboard.
     document.getElementById('chessboard').addEventListener('click', (e) => {
@@ -75,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showPossibleMoves(selectedPiece[0]);
 
                     if (pieceType == 'K') {
-                        console.log(chessboard.canCastling(selectedPiece[0]));
+                        //console.log(chessboard.canCastling(selectedPiece[0]));
                         showPossibleCastlings(chessboard.canCastling(selectedPiece[0]));
                     }
                 }
@@ -186,8 +190,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function createChessboard(chessboard) {
     const board = chessboard.getBoard();
-    const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-    const ranks = ['8', '7', '6', '5', '4', '3', '2', '1'];
+    const files = chessboard.getFiles();
+    const ranks = chessboard.getRanks();
+    // 
+    const letterRank = chessboard.getSideViewPoint() == 'w' ? 1 : 8;
+    const numberFile = chessboard.getSideViewPoint() == 'w' ? 'h' : 'a';
     let pieces = [];
 
     // Loop through the 2 dimensional chessboard array.
@@ -200,17 +207,17 @@ function createChessboard(chessboard) {
             // Check for the chessboard coordinate marks.
 
             // The h1 square requires 2 mark, (h and 1).
-            if (ranks[i] == 1 && files[j] == 'h') {
+            if (ranks[i] == letterRank && files[j] == numberFile) {
                 let html = '<span class="rank-numbers">' + ranks[ranks.length - 1] + '</span>';
                 html += '<span class="file-letters">' + files[j] + '</span>';
                 square.innerHTML = html;
             }
             // Display the file letters all along the rank 1.
-            else if (ranks[i] == 1) {
+            else if (ranks[i] == letterRank) {
                 square.innerHTML = '<span class="file-letters">' + files[j] + '</span>';
             }
             // Display the rank numbers all along the file h.
-            else if (files[j] == 'h') {
+            else if (files[j] == numberFile) {
                 square.innerHTML = '<span class="rank-numbers">' + ranks[i] + '</span>';
             }
 
