@@ -4,11 +4,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const chessboard = new Chessboard();
     chessboard.flipboard();
     createChessboard(chessboard);
-//console.log(chessboard.getFiles());
-//console.log(chessboard.getRanks());
+//console.log(chessboard.getPieceAtPosition('h8'));
 
     let selectedPiece = [];
-    //console.log(chessboard.getBoard());
 
     // Listen to click events coming from the chessboard.
     document.getElementById('chessboard').addEventListener('click', (e) => {
@@ -79,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showPossibleMoves(selectedPiece[0]);
 
                     if (pieceType == 'K') {
+    console.log(chessboard.canCastling(selectedPiece[0]));
                         //console.log(chessboard.canCastling(selectedPiece[0]));
                         showPossibleCastlings(chessboard.canCastling(selectedPiece[0]));
                     }

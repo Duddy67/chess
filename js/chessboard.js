@@ -14,7 +14,7 @@ class Chessboard {
 
     // Maps between the chess ranks and files and the 2 dimensional array indexes.
     #coordinates = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7,
-                    '1': 7, '2': 6, '3': 5, '4': 4, '5': 3, '6': 2, '7': 1, '8': 0};
+                    '8': 0, '7': 1, '6': 2, '5': 3, '4': 4, '3': 5, '2': 6, '1': 7};
 
     // File and rank values to set piece positions.
     #files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -341,11 +341,13 @@ class Chessboard {
         // First, make sure the king hasn't moved and is not attacked.
         if (!king.hasMoved() && !king.isAttacked()) {
             // Get the king's rank and the rank number according to the king's side.
-            const rank = king.getSide() == 'w' ? this.#board[7] : this.#board[0];
+            //const rank = king.getSide() == 'w' ? this.#board[7] : this.#board[0];
+            const rank = king.getPosition().charAt(1) == 1 ? this.#board[0] : this.#board[7];
             const rankNumber = king.getSide() == 'w' ? 1 : 8;
+            //const rankNumber = king.getPosition().charAt(1) == 1 ? 8 : 1;
             const initialPosition = king.getPosition();
             let isAttacked = false;
-
+console.log(rank);
             // Check for long castle.
             if (rank[0] == 'R' + king.getSide()) {
                 const rook = this.getPieceAtPosition('a' + rankNumber);
@@ -430,40 +432,33 @@ class Chessboard {
         return this.#sideViewPoint;
     }
 
+    /*
+     * Reverses all the board data.
+     */
     flipboard() {
+        // First reverse the array rows. 
+        this.#board.reverse();
+
+        // Then reverse the elements in each row.
+        for (let i = 0; i < this.#MAX_SQUARES; i++) {
+            this.#board[i].reverse();
+        }
+
+        // Get the coordinate keys.
+        let keys = Object.keys(this.#coordinates);
+        // Compute the last index of an height element array.
+        const lastIndex = this.#MAX_SQUARES - 1;
+
+        // Reverse the coordinate value for each key.
+        keys.forEach((key) => {
+            // Get the reversed value by subtracting the actual value to the last index number.
+            this.#coordinates[key] = this.#coordinates[key] < lastIndex ? lastIndex - parseInt(this.#coordinates[key]) : 0;
+        });
+
+        this.#files.reverse();
+        this.#ranks.reverse();
+
+        // Switch the side view point accordingly.
         this.#sideViewPoint = this.#sideViewPoint == 'w' ? 'b' : 'w';
-
-        // Loop through the 2 dimensional chessboard array.
-        for (let i = 0; i < this.#board.length; i++) {
-            for (let j = 0; j < this.#board[i].length; j++) {
-                if (this.#board[i][j]) {
-                    // Flip sides.
-                    const side = this.#board[i][j].charAt(1) == 'w' ? 'b' : 'w';
-                    this.#board[i][j] = this.#board[i][j].charAt(0) + side;
-                }
-            }
-        }
-
-        if (this.#sideViewPoint == 'w') {
-            this.#coordinates = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7,
-                                 '1': 7, '2': 6, '3': 5, '4': 4, '5': 3, '6': 2, '7': 1, '8': 0};
-        }
-        else {
-            this.#coordinates = {'h': 0, 'g': 1, 'f': 2, 'e': 3, 'd': 4, 'c': 5, 'b': 6, 'a': 7,
-                                 '8': 7, '7': 6, '6': 5, '5': 4, '4': 3, '3': 2, '2': 1, '1': 0};
-        }
-
-        const files = this.#sideViewPoint == 'w' ? ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] : ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'];
-        const ranks = this.#sideViewPoint == 'w' ? ['8', '7', '6', '5', '4', '3', '2', '1'] : ['1', '2', '3', '4', '5', '6', '7', '8'];
-
-        for (let i = 0; i < this.#files.length; i++) {
-            this.#files[i] = files[i];
-        }
-
-        for (let i = 0; i < this.#ranks.length; i++) {
-            this.#ranks[i] = ranks[i];
-        }
-console.log(this.#coordinates);
-        this.#setPieces();
     }
 }

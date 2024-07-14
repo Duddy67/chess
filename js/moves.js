@@ -12,7 +12,7 @@ function stepable (chessboard, side) {
         goOneStepForward: (position) => {
             // Extract rank coordinates from the position.
             let rank = position.charAt(1);
-      console.log(rank);
+      //console.log(rank);
             // One step forward from the white viewpoint.
             if (side == 'w') {
             //if (side == 'w' && chessboard.getSideViewPoint() == 'w') {
@@ -54,8 +54,8 @@ function stepable (chessboard, side) {
             let rank = position.charAt(1);
 
             // One step backward from the white viewpoint.
-            //if (side == 'w') {
-            if ((side == 'w' && chessboard.getSideViewPoint() == 'w') || (side == 'b' && chessboard.getSideViewPoint() == 'b')) {
+            if (side == 'w') {
+            //if ((side == 'w' && chessboard.getSideViewPoint() == 'w') || (side == 'b' && chessboard.getSideViewPoint() == 'b')) {
                 // Check for boundary effect.
                 rank = parseInt(rank) > 1 ? parseInt(rank) - 1 : rank;
             }
@@ -77,8 +77,8 @@ function stepable (chessboard, side) {
             let file = position.charAt(0);
 
             // One step right from the white viewpoint.
-            //if (side == 'w') {
-            if ((side == 'w' && chessboard.getSideViewPoint() == 'w') || (side == 'b' && chessboard.getSideViewPoint() == 'b')) {
+            if (side == 'w') {
+            //if ((side == 'w' && chessboard.getSideViewPoint() == 'w') || (side == 'b' && chessboard.getSideViewPoint() == 'b')) {
                 // Check for boundary effect.
                 file = file.localeCompare('h') === -1 ? String.fromCharCode(file.charCodeAt(0) + 1) : file;
             }
@@ -100,8 +100,8 @@ function stepable (chessboard, side) {
             let file = position.charAt(0);
 
             // One step left from the white viewpoint.
-            //if (side == 'w') {
-            if ((side == 'w' && chessboard.getSideViewPoint() == 'w') || (side == 'b' && chessboard.getSideViewPoint() == 'b')) {
+            if (side == 'w') {
+            //if ((side == 'w' && chessboard.getSideViewPoint() == 'w') || (side == 'b' && chessboard.getSideViewPoint() == 'b')) {
                 // Check for boundary effect.
                 file = file.localeCompare('a') === 1 ? String.fromCharCode(file.charCodeAt(0) - 1) : file;
             }
