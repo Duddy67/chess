@@ -336,25 +336,49 @@ class Chessboard {
         }
     }
 
+    /*
+     * Checks whether castling is possible.
+     * Returns castling squares.
+     */
     canCastling(king) {
         let castlings = [];
         // First, make sure the king hasn't moved and is not attacked.
         if (!king.hasMoved() && !king.isAttacked()) {
-            // Get the king's rank and the rank number according to the king's side.
-            //const rank = king.getSide() == 'w' ? this.#board[7] : this.#board[0];
-            const rank = king.getPosition().charAt(1) == 1 ? this.#board[0] : this.#board[7];
-            const rankNumber = king.getSide() == 'w' ? 1 : 8;
-            //const rankNumber = king.getPosition().charAt(1) == 1 ? 8 : 1;
+            let rank;
+            let rankNumber;
+
+            // Get the king's rank and the rank number according to both the king's side and the side view point.
+            if ((this.#sideViewPoint == 'w' && king.getSide() == 'w') || (this.#sideViewPoint == 'b' && king.getSide() == 'b')) {
+                // Get the last array of the 2 dimensional board array. 
+                rank = this.#board[7];
+                rankNumber = 8;
+            }
+            else {
+                // Get the first array of the 2 dimensional board array. 
+                rank = this.#board[0];
+                rankNumber = 1;
+            }
+
             const initialPosition = king.getPosition();
             let isAttacked = false;
-console.log(rank);
-            // Check for long castle.
+
+            // Initialize variables to fit with castling on the left side. 
+
+            // The file of the rook to check.
+            let rookFile = this.#sideViewPoint == 'w' ? 'a' : 'h';
+            // Check for a short or long castling according to the side view point.
+            let castlingSteps = this.#sideViewPoint == 'w' ? ['b', 'c', 'd'] : ['g', 'f'];
+            // Check empty squares accordingly.
+            let emptySquares = this.#sideViewPoint == 'w' ? rank[1] == '' && rank[2] == '' && rank[3] == '' : rank[1] == '' && rank[2] == '';
+            let castlingFile = this.#sideViewPoint == 'w' ? 'c' : 'g';
+
+            // Check for the rook on the left side of the rank.
             if (rank[0] == 'R' + king.getSide()) {
-                const rook = this.getPieceAtPosition('a' + rankNumber);
-                // Check the rook hasn't moved and there is no piece between the king and the rook. 
-                if (!rook.hasMoved() && rank[1] == '' && rank[2] == '' && rank[3] == '') {
+                const rook = this.getPieceAtPosition(rookFile + rankNumber);
+
+                // Check the rook hasn't moved and the squares between the king and the rook are empty. 
+                if (!rook.hasMoved() && emptySquares) {
                     // Now make sure the king is not attacked on the way.
-                    const castlingSteps = ['b', 'c', 'd'];
                     // Check for each position.
                     for (let i = 0; i < castlingSteps.length; i++) {
                         king.setPosition(castlingSteps[i] + rankNumber);
@@ -365,17 +389,21 @@ console.log(rank);
                     }
 
                     if (!isAttacked) {
-                        castlings.push('c' + rankNumber);
+                        castlings.push(castlingFile + rankNumber);
                     }
                 }
             }
 
-            // Check for short castle.
-            if (rank[7] == 'R' + king.getSide()) {
-                const rook = this.getPieceAtPosition('h' + rankNumber);
-                if (!rook.hasMoved() && rank[5] == '' && rank[6] == '') {
-                    const castlingSteps = ['f', 'g'];
+            // Reinitialize variables to fit with castling on the right side. 
+            rookFile = this.#sideViewPoint == 'w' ? 'h' : 'a';
+            castlingSteps = this.#sideViewPoint == 'w' ? ['g', 'f'] : ['b', 'c', 'd'];
+            emptySquares = this.#sideViewPoint == 'w' ? rank[5] == '' && rank[6] == '' : rank[4] == '' && rank[5] == '' && rank[6] == '';
+            castlingFile = this.#sideViewPoint == 'w' ? 'g' : 'c';
 
+            // Check for the rook on the right side of the rank.
+            if (rank[7] == 'R' + king.getSide()) {
+                const rook = this.getPieceAtPosition(rookFile + rankNumber);
+                if (!rook.hasMoved() && emptySquares) {
                     for (let i = 0; i < castlingSteps.length; i++) {
                         king.setPosition(castlingSteps[i] + rankNumber);
 
@@ -385,7 +413,7 @@ console.log(rank);
                     }
 
                     if (!isAttacked) {
-                        castlings.push('g' + rankNumber);
+                        castlings.push(castlingFile + rankNumber);
                     }
                 }
             }
