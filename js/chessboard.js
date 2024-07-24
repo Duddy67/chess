@@ -344,18 +344,19 @@ class Chessboard {
         let castlings = [];
         // First, make sure the king hasn't moved and is not attacked.
         if (!king.hasMoved() && !king.isAttacked()) {
-            let rank;
-            let rankNumber;
-
             // Get the king's rank and the rank number according to both the king's side and the side view point.
+
+            // Get the first array of the 2 dimensional board array. 
+            let rank = this.#board[0]; // side = b && side view point = w OR  side = w && side view point = b
+
             if ((this.#sideViewPoint == 'w' && king.getSide() == 'w') || (this.#sideViewPoint == 'b' && king.getSide() == 'b')) {
                 // Get the last array of the 2 dimensional board array. 
                 rank = this.#board[7];
-                rankNumber = 8;
             }
-            else {
-                // Get the first array of the 2 dimensional board array. 
-                rank = this.#board[0];
+
+            let rankNumber = 8; // side = b && side view point = b OR  side = b && side view point = w
+
+            if ((king.getSide() == 'w' && this.#sideViewPoint == 'w') || (king.getSide() == 'w' && this.#sideViewPoint == 'b')) {
                 rankNumber = 1;
             }
 
@@ -365,7 +366,7 @@ class Chessboard {
             // Initialize variables to fit with castling on the left side. 
 
             // The file of the rook to check.
-            let rookFile = this.#sideViewPoint == 'w' ? 'a' : 'h';
+            let rookFile = this.#sideViewPoint == 'w' ? 'a' : 'h'; // ok
             // Check for a short or long castling according to the side view point.
             let castlingSteps = this.#sideViewPoint == 'w' ? ['b', 'c', 'd'] : ['g', 'f'];
             // Check empty squares accordingly.
