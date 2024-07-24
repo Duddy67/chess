@@ -10,10 +10,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Listen to click events coming from the chessboard.
     document.getElementById('chessboard').addEventListener('click', (e) => {
+
+        // Promoted pawn moves are handled differently.
+        if (selectedPiece.length && selectedPiece[0].getType() == 'P' && selectedPiece[0].isPromoted()) {
+            return;
+        }
+
         // An empty square has been clicked.
         if (e.target.classList.contains('square')) {
             // A piece has been moved from a given position to this square.
-            // N.B: Promoted pawn moves are handled differently.
             if (selectedPiece.length) {
                 // Get the square position (eg: e4, b6...).
                 const position = e.target.id;
@@ -89,7 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 selectedPiece = []
             }
             // The piece is captured.
-            // N.B: Promoted pawn moves are handled differently.
             else if (selectedPiece.length && chessboard.whoseTurnIsIt() != pieceSide) {
                 // First make sure the piece is allowed to go to this square.
                 if (selectedPiece[0].getMoves().includes(position)) {
