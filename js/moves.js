@@ -12,30 +12,12 @@ function stepable (chessboard, side) {
         goOneStepForward: (position) => {
             // Extract rank coordinates from the position.
             let rank = position.charAt(1);
-      //console.log(rank);
+
             // One step forward from the white viewpoint.
             if (side == 'w') {
-            //if (side == 'w' && chessboard.getSideViewPoint() == 'w') {
                 // Check for boundary effect.
                 rank = parseInt(rank) < chessboard.getMaxSquares() ? parseInt(rank) + 1 : rank;
             }
-
-            /*if (side == 'w' && chessboard.getSideViewPoint() == 'b') {
-                rank = parseInt(rank) < 8 ? parseInt(rank) + 1 : rank;
-            }
-
-            if (side == 'b' && chessboard.getSideViewPoint() == 'b') {
-                rank = parseInt(rank) < chessboard.getMaxSquares() ? parseInt(rank) - 1 : rank;
-              //console.log('rank ' + rank);
-
-            }
-
-            if (side == 'b' && chessboard.getSideViewPoint() == 'w') {
-                rank = parseInt(rank) < chessboard.getMaxSquares() ? parseInt(rank) - 1 : rank;
-              //console.log('rank ' + rank);
-
-            }*/
-
             // One step forward from the black viewpoint.
             else {
                 // Check for boundary effect.
@@ -55,7 +37,6 @@ function stepable (chessboard, side) {
 
             // One step backward from the white viewpoint.
             if (side == 'w') {
-            //if ((side == 'w' && chessboard.getSideViewPoint() == 'w') || (side == 'b' && chessboard.getSideViewPoint() == 'b')) {
                 // Check for boundary effect.
                 rank = parseInt(rank) > 1 ? parseInt(rank) - 1 : rank;
             }
@@ -78,7 +59,6 @@ function stepable (chessboard, side) {
 
             // One step right from the white viewpoint.
             if (side == 'w') {
-            //if ((side == 'w' && chessboard.getSideViewPoint() == 'w') || (side == 'b' && chessboard.getSideViewPoint() == 'b')) {
                 // Check for boundary effect.
                 file = file.localeCompare('h') === -1 ? String.fromCharCode(file.charCodeAt(0) + 1) : file;
             }
@@ -101,7 +81,6 @@ function stepable (chessboard, side) {
 
             // One step left from the white viewpoint.
             if (side == 'w') {
-            //if ((side == 'w' && chessboard.getSideViewPoint() == 'w') || (side == 'b' && chessboard.getSideViewPoint() == 'b')) {
                 // Check for boundary effect.
                 file = file.localeCompare('a') === 1 ? String.fromCharCode(file.charCodeAt(0) - 1) : file;
             }

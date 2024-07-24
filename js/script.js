@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chessboard = new Chessboard();
     chessboard.flipboard();
     createChessboard(chessboard);
-console.log(chessboard.getBoard());
+//console.log(chessboard.getBoard());
 
     let selectedPiece = [];
 
@@ -77,7 +77,6 @@ console.log(chessboard.getBoard());
                     showPossibleMoves(selectedPiece[0]);
 
                     if (pieceType == 'K') {
-                  console.log(chessboard.canCastling(selectedPiece[0]));
                         showPossibleCastlings(chessboard.canCastling(selectedPiece[0]));
                     }
                 }
@@ -132,7 +131,17 @@ console.log(chessboard.getBoard());
             if (selectedPiece[0]['getMoves']().includes(position)) {
                 // Adjust the top and left positions of the board
                 const squareHeight = square.clientHeight;
-                const top = chessboard.whoseTurnIsIt() == 'w' ? square.offsetTop - squareHeight : square.offsetTop + squareHeight;
+                let top;
+
+                if ((chessboard.whoseTurnIsIt() == 'w' && chessboard.getSideViewPoint() == 'w') ||
+                    (chessboard.whoseTurnIsIt() == 'b' && chessboard.getSideViewPoint() == 'b'))  {
+                    top = square.offsetTop - squareHeight;
+                }
+                else {
+                    top = square.offsetTop + squareHeight;
+
+                }
+
                 const left = square.offsetLeft - (squareHeight * 2);
 
                 // Get the new piece board of the side that is currently playing.
