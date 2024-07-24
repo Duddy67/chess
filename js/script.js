@@ -2,11 +2,15 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     const chessboard = new Chessboard();
-    chessboard.flipboard();
     createChessboard(chessboard);
-//console.log(chessboard.getBoard());
 
     let selectedPiece = [];
+
+    document.getElementById('flipBoard').addEventListener('click', (e) => {
+        chessboard.flipboard();
+        createChessboard(chessboard);
+        //console.log(chessboard.getBoard());
+    });
 
     // Listen to click events coming from the chessboard.
     document.getElementById('chessboard').addEventListener('click', (e) => {
@@ -187,6 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Check for custom events.
+
     // Dispatched after each move.
     document.addEventListener('move', (e) => {
         updateHistory(chessboard);
@@ -207,6 +213,9 @@ function createChessboard(chessboard) {
     const letterRank = chessboard.getSideViewPoint() == 'w' ? 1 : 8;
     const numberFile = chessboard.getSideViewPoint() == 'w' ? 'h' : 'a';
     let pieces = [];
+
+    // Delete all possible children.
+    document.getElementById('chessboard').replaceChildren();
 
     // Loop through the 2 dimensional chessboard array.
     for (let i = 0; i < board.length; i++) {
@@ -371,5 +380,9 @@ function updateHistory(chessboard) {
     // Scroll to the bottom of the div.
     const wrapper = document.getElementById('history-wrapper');
     wrapper.scrollTop = wrapper.scrollHeight;
+
+    const sideToPlay = chessboard.whoseTurnIsIt() == 'w' ? 'White' : 'Black';
+    document.getElementById('sideToPlay').innerHTML = sideToPlay;
+
 }
 
