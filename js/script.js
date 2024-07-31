@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const chessboard = new Chessboard();
     createChessboard(chessboard);
+    const api = new Lichess();
 
     let selectedPiece = [];
 
@@ -10,6 +11,17 @@ document.addEventListener('DOMContentLoaded', () => {
         chessboard.flipboard();
         createChessboard(chessboard);
         //console.log(chessboard.getBoard());
+    });
+
+    document.getElementById('puzzle').addEventListener('click', (e) => {
+        console.log('puzzle');
+        //console.log(api);
+        api.getPuzzleById('001XA').then(data => {
+            //console.log(data.game.pgn);
+            runGame(chessboard, data.game.pgn);
+        }).catch(error => {
+            console.log('Promise rejected: ' + error.message);
+        });
     });
 
     // Listen to click events coming from the chessboard.
@@ -383,6 +395,16 @@ function updateHistory(chessboard) {
 
     const sideToPlay = chessboard.whoseTurnIsIt() == 'w' ? 'White' : 'Black';
     document.getElementById('sideToPlay').innerHTML = sideToPlay;
+
+}
+
+function runGame(chessboard, pgn) {
+  let moves = pgn.split(' ');
+  console.log(moves);
+  const pawnRegex = /^[a-h]{1}[0-8]{1}$/;
+
+  console.log(pawnRegex.test('d4'));
+
 
 }
 
