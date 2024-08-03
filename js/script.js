@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chessboard = new Chessboard();
     createChessboard(chessboard);
     const api = new Lichess();
+    const playGame = new PlayGame(chessboard);
 
     let selectedPiece = [];
 
@@ -18,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         //console.log(api);
         api.getPuzzleById('001XA').then(data => {
             //console.log(data.game.pgn);
-            runGame(chessboard, data.game.pgn);
+            game(playGame, data.game.pgn, chessboard);
         }).catch(error => {
             console.log('Promise rejected: ' + error.message);
         });
@@ -398,12 +399,56 @@ function updateHistory(chessboard) {
 
 }
 
-function runGame(chessboard, pgn) {
+function game(playGame, pgn, chessboard) {
   let moves = pgn.split(' ');
   console.log(moves);
-  const pawnRegex = /^[a-h]{1}[0-8]{1}$/;
 
-  console.log(pawnRegex.test('d4'));
+  const parsings = {
+                     P_move: /^[a-h]{1}[0-8]{1}$/, 
+                     P_capture_dsbg: /^[a-h]{1}x[a-h]{1}[0-8]{1}$/,
+                     R_move: /^R[a-h]{1}[0-8]{1}$/,
+                     R_move_dsbg: /^R[a-h]{2}[0-8]{1}$/,
+                     R_capture: /^Rx[a-h]{1}[0-8]{1}$/,
+                     R_capture_dsbg: /^R[a-h]{1}x[a-h]{1}[0-8]{1}$/,
+                     N_move: /^N[a-h]{1}[0-8]{1}$/,
+                     N_move_dsbg: /^N[a-h]{2}[0-8]{1}$/,
+                     N_capture: /^Nx[a-h]{1}[0-8]{1}$/,
+                     N_capture_dsbg: /^N[a-h]{1}x[a-h]{1}[0-8]{1}$/,
+                     B_move: /^B[a-h]{1}[0-8]{1}$/,
+                     B_capture: /^Bx[a-h]{1}[0-8]{1}$/,
+                     Q_move: /^Q[a-h]{1}[0-8]{1}$/,
+                     Q_capture: /^Qx[a-h]{1}[0-8]{1}$/,
+                     K_move: /^K[a-h]{1}[0-8]{1}$/,
+                     K_capture: /^Kx[a-h]{1}[0-8]{1}$/,
+                     C_king_side: /^O-O$/,
+                     C_queen_side: /^O-O-O$/,
+  };
+
+  playGame.pawn('d4');
+  playGame.pawn('e5');
+  playGame.pawn('e5');
+  createChessboard(chessboard);
+  /*for (let i = 0; i < moves.length; i++) {
+      let unknown = true;
+
+      for (let [key, regex] of Object.entries(parsings)) {
+          if (regex.test(moves[i])) {
+              unknown = false;
+              //console.log(key + ' ' + moves[i]);
+
+              switch (key.charAt(0)) {
+                  case 'P':
+                      playGame.pawn(moves[i]);
+                      break;
+              }
+          }
+      }
+
+      if (unknown) {
+          console.log('Unknown: ' + moves[i]);
+      }
+  }*/
+
 
 
 }
