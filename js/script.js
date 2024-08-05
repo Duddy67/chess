@@ -424,15 +424,15 @@ function game(playGame, pgn, chessboard) {
                      C_queen_side: /^O-O-O$/,
   };
 
-  playGame.pawn('f4');
-  playGame.pawn('d5');
-  playGame.pawn('f5');
-  playGame.pawn('g5');
-  playGame.pawn('fxg6');
+  playGame.pawn('a4');
+  playGame.pawn('h5');
+  playGame.rook('Ra3');
+  playGame.rook('Rh6');
+  /*playGame.pawn('fxg6');
   playGame.pawn('a5');
   playGame.pawn('g7');
   playGame.pawn('a4');
-  playGame.pawn('h8=Q');
+  playGame.pawn('h8=Q');*/
   createChessboard(chessboard);
 //const str = 'h8=Q'
 //const promotion = str.substring(str.length - 2, str.length - 1) == '=' ? str.slice(-1) : undefined;
