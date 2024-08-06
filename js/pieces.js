@@ -345,7 +345,7 @@ class Knight extends Piece {
 
                 // No boundary effect.
                 if (tmpPosition != this.getPosition()) {
-                    // Then from there, go 1 step to the left or to the right. 
+                    // Then from there, go 2 step to the left or to the right. 
                     let position = this.getNewPosition(tmpPosition, this.#lftRgt[i][j], 2, skip);
 
                     // No boundary effect.

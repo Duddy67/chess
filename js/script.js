@@ -424,16 +424,32 @@ function game(playGame, pgn, chessboard) {
                      C_queen_side: /^O-O-O$/,
   };
 
-  playGame.pawn('a4');
+  /*playGame.pawn('a4');
   playGame.pawn('h5');
   playGame.rook('Ra3');
   playGame.rook('Rh6');
+  playGame.pawn('h4');
+  playGame.pawn('a5');
+  playGame.rook('Rhh3');
+  playGame.rook('Raa6');
+  playGame.rook('Rae3');
+  playGame.rook('Rae6');
+  playGame.rook('Rxe6');*/
   /*playGame.pawn('fxg6');
   playGame.pawn('a5');
   playGame.pawn('g7');
   playGame.pawn('a4');
   playGame.pawn('h8=Q');*/
+  playGame.knight('Nf3');
+  playGame.knight('Nc6');
+  playGame.knight('Nc3');
+  playGame.knight('Nf6');
+  playGame.knight('Ne4');
+  playGame.pawn('g5');
+  playGame.knight('Nfxg5');
   createChessboard(chessboard);
+
+  console.log(/^[a-h]{1}[0-8]{1}\+?$/.test('Ne5+'));
 //const str = 'h8=Q'
 //const promotion = str.substring(str.length - 2, str.length - 1) == '=' ? str.slice(-1) : undefined;
 //console.log(str.substring(0, 2));
