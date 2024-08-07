@@ -39,6 +39,90 @@ class PlayGame {
         return parsing;
     }
 
+    #playMove(piece, parsing, directions, steps) {
+        // 
+        steps = steps === undefined ? this.#chessboard.getMaxSquares() : steps;
+
+        // Use the movable function to find out the piece's starting position.
+        const mvb = movable(this.#chessboard, this.#chessboard.whoseTurnIsIt());
+        let startingPosition;
+
+        // Get the starting position by testing the moves from each direction.
+        // Note: The main loop is labeled as "search" in order to break the nested loops.
+        search: for (let i = 0; i < directions.length; i++) {
+                    // Get the possible moves in the given direction.
+                    let moves = mvb.getMoves(parsing.position, directions[i], steps, true);
+
+                    // Test each move.
+                    for (let j = 0; j < moves.length; j++) {
+                        // Check possible disambiguating.
+                        if (parsing.disambiguating && parsing.disambiguating != moves[j].charAt(0)) {
+                            continue;
+                        }
+
+                        let square = this.#chessboard.getSquare(moves[j]);
+
+                        if (square == piece + this.#chessboard.whoseTurnIsIt()) {
+                            startingPosition = moves[j];
+                            break search;
+                        }
+                    }
+                }
+
+        // Get the piece object.
+        piece = this.#chessboard.getPieceAtPosition(startingPosition);
+        // Move the piece.
+        this.#chessboard.movePiece(piece, parsing.position);
+    }
+
+    king(move) {
+        // Get the parsing of the move.
+        const parsing = this.#parseMove(move);
+
+        // Set the directions the king is allowed to go.
+        const directions = ['right-diagonal-forward', 'left-diagonal-forward', 
+                            'right-diagonal-backward', 'left-diagonal-backward',
+                            'forward', 'backward', 'right', 'left'
+        ];
+
+        this.#playMove('K', parsing, directions, 1);
+    }
+
+    queen(move) {
+        // Get the parsing of the move.
+        const parsing = this.#parseMove(move);
+
+        // Set the directions the queen is allowed to go.
+        const directions = ['right-diagonal-forward', 'left-diagonal-forward', 
+                            'right-diagonal-backward', 'left-diagonal-backward',
+                            'forward', 'backward', 'right', 'left'
+        ];
+
+        this.#playMove('Q', parsing, directions);
+    }
+
+    bishop(move) {
+        // Get the parsing of the move.
+        const parsing = this.#parseMove(move);
+
+        // Set the directions the bishop is allowed to go.
+        const directions = ['right-diagonal-forward', 'left-diagonal-forward',
+                            'right-diagonal-backward', 'left-diagonal-backward'
+        ];
+
+        this.#playMove('B', parsing, directions);
+    }
+
+    rook(move) {
+        // Get the parsing of the move.
+        const parsing = this.#parseMove(move);
+
+        // Set the directions the rook is allowed to go.
+        const directions = ['forward', 'backward', 'right', 'left'];
+
+        this.#playMove('R', parsing, directions);
+    }
+
     knight(move) {
         // Use the movable function to find out the piece's starting position.
         const mvb = movable(this.#chessboard, this.#chessboard.whoseTurnIsIt());
@@ -114,45 +198,6 @@ class PlayGame {
 
         // Move the knight.
         this.#chessboard.movePiece(knight, parsing.position);
-    }
-
-    rook(move) {
-        // Use the movable function to find out the piece's starting position.
-        const mvb = movable(this.#chessboard, this.#chessboard.whoseTurnIsIt());
-
-        // Get the parsing of the move.
-        const parsing = this.#parseMove(move);
-
-        // The four possible directions for a rook.
-        const directions = ['forward', 'backward', 'right', 'left'];
-        let startingPosition;
-
-        // Get the starting position by testing the moves from each direction.
-        // Note: The main loop is labeled as "search" in order to break the nested loops.
-        search: for (let i = 0; i < directions.length; i++) {
-                    // Get the possible moves in the given direction.
-                    let moves = mvb.getMoves(parsing.position, directions[i], this.#chessboard.getMaxSquares(), true);
-
-                    // Test each move.
-                    for (let j = 0; j < moves.length; j++) {
-                        // Check possible disambiguating.
-                        if (parsing.disambiguating && parsing.disambiguating != moves[j].charAt(0)) {
-                            continue;
-                        }
-
-                        let square = this.#chessboard.getSquare(moves[j]);
-
-                        if (square == 'R' + this.#chessboard.whoseTurnIsIt()) {
-                            startingPosition = moves[j];
-                            break search;
-                        }
-                    }
-                }
-
-        // Get the rook object.
-        const rook = this.#chessboard.getPieceAtPosition(startingPosition);
-        // Move the rook.
-        this.#chessboard.movePiece(rook, parsing.position);
     }
 
     pawn(move) {

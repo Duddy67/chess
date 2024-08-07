@@ -440,20 +440,32 @@ function game(playGame, pgn, chessboard) {
   playGame.pawn('g7');
   playGame.pawn('a4');
   playGame.pawn('h8=Q');*/
-  playGame.knight('Nf3');
-  playGame.knight('Nc6');
-  playGame.knight('Nc3');
-  playGame.knight('Nf6');
-  playGame.knight('Ne4');
-  playGame.pawn('g5');
-  playGame.knight('Nfxg5');
-  createChessboard(chessboard);
+  //playGame.knight('Nf3');
+  //playGame.knight('Nc6');
+  //playGame.knight('Nc3');
+  //playGame.knight('Nf6');
+  //playGame.knight('Ne4');
+  //playGame.pawn('g5');
+  //playGame.knight('Nfxg5');
+  /*playGame.pawn('d4');
+  playGame.pawn('d5');
+  playGame.bishop('Bg5');
+  playGame.bishop('Bg4');
+  playGame.pawn('e4');
+  playGame.pawn('e5');
+  playGame.bishop('Bb5');
+  playGame.pawn('c6');
+  playGame.pawn('c3');
+  playGame.bishop('Bb4');
+  playGame.bishop('Bxc6');
+  createChessboard(chessboard);*/
 
   console.log(/^[a-h]{1}[0-8]{1}\+?$/.test('Ne5+'));
 //const str = 'h8=Q'
 //const promotion = str.substring(str.length - 2, str.length - 1) == '=' ? str.slice(-1) : undefined;
 //console.log(str.substring(0, 2));
-  /*for (let i = 0; i < moves.length; i++) {
+  moves = ['e4', 'e5', 'Qg4', 'Qg5', 'Kd1', 'Kd8'];
+  for (let i = 0; i < moves.length; i++) {
       let unknown = true;
 
       for (let [key, regex] of Object.entries(parsings)) {
@@ -465,6 +477,26 @@ function game(playGame, pgn, chessboard) {
                   case 'P':
                       playGame.pawn(moves[i]);
                       break;
+
+                  case 'R':
+                      playGame.rook(moves[i]);
+                      break;
+
+                  case 'N':
+                      playGame.knight(moves[i]);
+                      break;
+
+                  case 'B':
+                      playGame.bishop(moves[i]);
+                      break;
+
+                  case 'Q':
+                      playGame.queen(moves[i]);
+                      break;
+
+                  case 'K':
+                      playGame.king(moves[i]);
+                      break;
               }
           }
       }
@@ -472,9 +504,14 @@ function game(playGame, pgn, chessboard) {
       if (unknown) {
           console.log('Unknown: ' + moves[i]);
       }
-  }*/
 
+  }
+  createChessboard(chessboard);
+}
 
-
+function delay(i) {
+      setTimeout(() => {
+          console.log('i ' + i)
+      },i * 1000);
 }
 
