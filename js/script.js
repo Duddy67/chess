@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const playGame = new PlayGame(chessboard);
 
     let selectedPiece = [];
+//console.log(/^[a-h]{1}[0-8]{1}[\+|\-]?$/.test('Fe5-'));
 
     document.getElementById('flipBoard').addEventListener('click', (e) => {
         chessboard.flipboard();
@@ -400,118 +401,67 @@ function updateHistory(chessboard) {
 }
 
 function game(playGame, pgn, chessboard) {
-  let moves = pgn.split(' ');
-  console.log(moves);
+    let moves = pgn.split(' ');
+    console.log(moves);
+    let delay = 1000; // Start with a 1-second delay
 
-  const parsings = {
-                     P_move: /^[a-h]{1}[0-8]{1}$/, 
-                     P_capture_dsbg: /^[a-h]{1}x[a-h]{1}[0-8]{1}$/,
-                     R_move: /^R[a-h]{1}[0-8]{1}$/,
-                     R_move_dsbg: /^R[a-h]{2}[0-8]{1}$/,
-                     R_capture: /^Rx[a-h]{1}[0-8]{1}$/,
-                     R_capture_dsbg: /^R[a-h]{1}x[a-h]{1}[0-8]{1}$/,
-                     N_move: /^N[a-h]{1}[0-8]{1}$/,
-                     N_move_dsbg: /^N[a-h]{2}[0-8]{1}$/,
-                     N_capture: /^Nx[a-h]{1}[0-8]{1}$/,
-                     N_capture_dsbg: /^N[a-h]{1}x[a-h]{1}[0-8]{1}$/,
-                     B_move: /^B[a-h]{1}[0-8]{1}$/,
-                     B_capture: /^Bx[a-h]{1}[0-8]{1}$/,
-                     Q_move: /^Q[a-h]{1}[0-8]{1}$/,
-                     Q_capture: /^Qx[a-h]{1}[0-8]{1}$/,
-                     K_move: /^K[a-h]{1}[0-8]{1}$/,
-                     K_capture: /^Kx[a-h]{1}[0-8]{1}$/,
-                     C_king_side: /^O-O$/,
-                     C_queen_side: /^O-O-O$/,
-  };
+    const parsers = playGame.getParsers();
 
-  /*playGame.pawn('a4');
-  playGame.pawn('h5');
-  playGame.rook('Ra3');
-  playGame.rook('Rh6');
-  playGame.pawn('h4');
-  playGame.pawn('a5');
-  playGame.rook('Rhh3');
-  playGame.rook('Raa6');
-  playGame.rook('Rae3');
-  playGame.rook('Rae6');
-  playGame.rook('Rxe6');*/
-  /*playGame.pawn('fxg6');
-  playGame.pawn('a5');
-  playGame.pawn('g7');
-  playGame.pawn('a4');
-  playGame.pawn('h8=Q');*/
-  //playGame.knight('Nf3');
-  //playGame.knight('Nc6');
-  //playGame.knight('Nc3');
-  //playGame.knight('Nf6');
-  //playGame.knight('Ne4');
-  //playGame.pawn('g5');
-  //playGame.knight('Nfxg5');
-  /*playGame.pawn('d4');
-  playGame.pawn('d5');
-  playGame.bishop('Bg5');
-  playGame.bishop('Bg4');
-  playGame.pawn('e4');
-  playGame.pawn('e5');
-  playGame.bishop('Bb5');
-  playGame.pawn('c6');
-  playGame.pawn('c3');
-  playGame.bishop('Bb4');
-  playGame.bishop('Bxc6');
-  createChessboard(chessboard);*/
+    //moves = ['d4', 'e5', 'f4', 'g5', 'dxe5'];
+    for (let i = 0; i < moves.length; i++) {
 
-  console.log(/^[a-h]{1}[0-8]{1}\+?$/.test('Ne5+'));
-//const str = 'h8=Q'
-//const promotion = str.substring(str.length - 2, str.length - 1) == '=' ? str.slice(-1) : undefined;
-//console.log(str.substring(0, 2));
-  moves = ['e4', 'e5', 'Qg4', 'Qg5', 'Kd1', 'Kd8'];
-  for (let i = 0; i < moves.length; i++) {
-      let unknown = true;
+        setTimeout(() => {
+            playPgn(playGame, parsers, moves, i);
+            createChessboard(chessboard);
+        }, delay);
 
-      for (let [key, regex] of Object.entries(parsings)) {
-          if (regex.test(moves[i])) {
-              unknown = false;
-              //console.log(key + ' ' + moves[i]);
+        delay += 2000; // Increase the delay by 1 second for each iteration
+    }
+}
 
-              switch (key.charAt(0)) {
-                  case 'P':
-                      playGame.pawn(moves[i]);
-                      break;
+function playPgn(playGame, parsers, moves, i) {
+    let unknown = true;
 
-                  case 'R':
-                      playGame.rook(moves[i]);
-                      break;
+    for (let [key, regex] of Object.entries(parsers)) {
+        if (regex.test(moves[i])) {
+            unknown = false;
+            console.log(moves[i]);
 
-                  case 'N':
-                      playGame.knight(moves[i]);
-                      break;
+            switch (key.charAt(0)) {
+                case 'P':
+                    playGame.pawn(moves[i]);
+                    break;
 
-                  case 'B':
-                      playGame.bishop(moves[i]);
-                      break;
+                case 'R':
+                    playGame.rook(moves[i]);
+                    break;
 
-                  case 'Q':
-                      playGame.queen(moves[i]);
-                      break;
+                case 'N':
+                    playGame.knight(moves[i]);
+                    break;
 
-                  case 'K':
-                      playGame.king(moves[i]);
-                      break;
-              }
-          }
-      }
+                case 'B':
+                    playGame.bishop(moves[i]);
+                    break;
+
+                case 'Q':
+                    playGame.queen(moves[i]);
+                    break;
+
+                case 'K':
+                    playGame.king(moves[i]);
+                    break;
+
+                case 'C':
+                    playGame.castling(moves[i]);
+                    break;
+            }
+        }
+    }
 
       if (unknown) {
           console.log('Unknown: ' + moves[i]);
       }
 
-  }
-  createChessboard(chessboard);
-}
-
-function delay(i) {
-      setTimeout(() => {
-          console.log('i ' + i)
-      },i * 1000);
 }
 

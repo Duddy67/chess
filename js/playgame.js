@@ -1,6 +1,27 @@
 
 class PlayGame {
     #chessboard;
+    // Regexes used to parse moves.
+    #parsers = {
+        P_move: /^[a-h]{1}[0-8]{1}[\+|\-]?$/, 
+        P_capture_dsbg: /^[a-h]{1}x[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        R_move: /^R[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        R_move_dsbg: /^R[a-h]{2}[0-8]{1}[\+|\-]?$/,
+        R_capture: /^Rx[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        R_capture_dsbg: /^R[a-h]{1}x[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        N_move: /^N[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        N_move_dsbg: /^N[a-h]{2}[0-8]{1}[\+|\-]?$/,
+        N_capture: /^Nx[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        N_capture_dsbg: /^N[a-h]{1}x[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        B_move: /^B[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        B_capture: /^Bx[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        Q_move: /^Q[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        Q_capture: /^Qx[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        K_move: /^K[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        K_capture: /^Kx[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        C_king_side: /^O-O[\+|\-]?$/,
+        C_queen_side: /^O-O-O[\+|\-]?$/,
+    };
 
     constructor(chessboard) {
         this.#chessboard = chessboard;
@@ -17,11 +38,25 @@ class PlayGame {
             move = move.substring(0, move.length - 1);
         }
 
+        // Check for pawn promotion. The penultimate character of the string. "=" means the pawn is promoted.
+        // In case of promotion, get the last character which is the letter of the new piece (Q, R...) concatenated with the side code.
+        parsing.promotion = move.substring(move.length - 2, move.length - 1) == '=' ? move.slice(-1) + this.#chessboard.whoseTurnIsIt() : undefined;
+
+        // Remove the possible promotion notation.
+        if (parsing.promotion !== undefined) {
+            move = move.substring(0, 2);
+        }
+
         // 2 disambiguating types are possible. Regular move (eg: Rbc8) or capture (eg: Rbxc8).
         // In both cases the second letter is the file letter.
         parsing.disambiguating = (move.length == 4 && move.charAt(1) != 'x') || move.length == 5 ? move.charAt(1) : '';
 
-        // Remove the possible disambiguating notation.
+        // Disambiguating might be used for pawns during capturing. But unlike the other pieces, no piece 
+        // letter (in uppercase) is provided in notation. 
+        // Thus the first character of the string becomes the disambiguating letter in lowercase (eg: bxc5).
+        parsing.disambiguating = move.length == 4 && /^[a-h]/.test(move) && move.charAt(1) == 'x' ? move.charAt(0) : parsing.disambiguating;
+
+        // Remove the possible disambiguating notation (as well as the piece letter).
         if (parsing.disambiguating) {
             const startIndex = move.length == 4 ? 2 : 3;
             move = move.substring(startIndex);
@@ -33,7 +68,7 @@ class PlayGame {
             move = move.substring(startIndex);
         }
 
-        // Store the ending position as a 2 coordinate characters (eg: a5, g2...).
+        // Store the ending position as a 2 characters coordinate (eg: a5, g2...).
         parsing.position = move;
 
         return parsing;
@@ -73,6 +108,8 @@ class PlayGame {
         piece = this.#chessboard.getPieceAtPosition(startingPosition);
         // Move the piece.
         this.#chessboard.movePiece(piece, parsing.position);
+
+        return {start: startingPosition, end: parsing.position};
     }
 
     king(move) {
@@ -203,45 +240,22 @@ class PlayGame {
     pawn(move) {
         const step = stepable(this.#chessboard, this.#chessboard.whoseTurnIsIt());
 
-        // Both + and - signs are sometimes used to indicate a decisive advantage for a side or the other.    
-        const advantage = move.slice(-1) == '+' || move.slice(-1) == '-' ? move.slice(-1) : '';
+        // Get the parsing of the move.
+        const parsing = this.#parseMove(move);
 
-        // Remove the possible advantage notation right away to prevent parsing errors..
-        if (advantage) {
-            move = move.substring(0, move.length - 1);
-        }
-
-        // The possible capture is disambiguated by providing the first character as the file letter (eg: axb6).
-        // Note: The disambiguating notation is also used for "en passant".
-        const disambiguating = move.charAt(1) == 'x' ? move.charAt(0) : '';
-
-        // Check the penultimate character of the string. "=" means the pawn is promoted.
-        // In case of promotion, get the last character which is the letter of the new piece (Q, R...) concatenated with the side code.
-        const promotion = move.substring(move.length - 2, move.length - 1) == '=' ? move.slice(-1) + this.#chessboard.whoseTurnIsIt() : undefined;
-
-        // Remove the possible disambiguating notation.
-        if (disambiguating) {
-            move = move.substring(2);
-        }
-
-        // Remove the possible promotion notation.
-        if (promotion !== undefined) {
-            move = move.substring(0, 2);
-        }
-
-        let square = this.#chessboard.getSquare(move);
-        let position = move;
+        let square = this.#chessboard.getSquare(parsing.position);
+        let position = parsing.position;
         let startingPosition;
 
         // A piece has been captured by the pawn. 
         // Check the disambiguating variable which is also used for possible "en passant". 
-        if (square || disambiguating) {
+        if (square || parsing.disambiguating) {
             // First go one step backward.
             position = step.goOneStepBackward(position);
 
             // Use the provided file letter. 
-            if (disambiguating) {
-                startingPosition = disambiguating + position.charAt(1);
+            if (parsing.disambiguating) {
+                startingPosition = parsing.disambiguating + position.charAt(1);
             }
             else if (this.#chessboard.getSquare(step.goOneStepRight(position)) == 'P' + this.#chessboard.whoseTurnIsIt()) {
                 startingPosition = step.goOneStepRight(position);
@@ -272,6 +286,25 @@ class PlayGame {
         // Get the pawn object.
         const pawn = this.#chessboard.getPieceAtPosition(startingPosition);
         // Move the pawn.
-        this.#chessboard.movePiece(pawn, move, promotion);
+        this.#chessboard.movePiece(pawn, parsing.position, parsing.promotion);
+    }
+
+    castling(move) {
+        // Infer the castling position from both the castling type and the playing side. 
+
+        // Get the file letter according to the castling type: kingside (O-O) or queenside(O-O-O).
+        const file = move == 'O-O' ? 'g' : 'c';
+        const rank = this.#chessboard.whoseTurnIsIt() == 'w' ? '1' : '8';
+        // Get the king's initial position.
+        const startingPosition = 'e' + rank;
+
+        // Get the king object.
+        const king = this.#chessboard.getPieceAtPosition(startingPosition);
+        // Castle.
+        this.#chessboard.movePiece(king, file + rank);
+    }
+
+    getParsers() {
+        return this.#parsers;
     }
 }
