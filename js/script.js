@@ -407,12 +407,20 @@ function game(playGame, pgn, chessboard) {
 
     const parsers = playGame.getParsers();
 
-    //moves = ['d4', 'e5', 'f4', 'g5', 'dxe5'];
+    //moves = ['d4', 'e5', 'f4', 'g5', 'dxe5', 'd5', 'exd6'];
     for (let i = 0; i < moves.length; i++) {
 
         setTimeout(() => {
-            playPgn(playGame, parsers, moves, i);
-            createChessboard(chessboard);
+            let parsing = playPgn(playGame, parsers, moves, i);
+            console.log(parsing);
+            //createChessboard(chessboard);
+            if (parsing.move == 'O-O' || parsing.move == 'O-O-O') {
+                movePiece(parsing.king_start, parsing.king_end);
+                movePiece(parsing.rook_start, parsing.rook_end);
+            }
+            else {
+                movePiece(parsing.start, parsing.position, parsing.promotion);
+            }
         }, delay);
 
         delay += 2000; // Increase the delay by 1 second for each iteration
@@ -421,39 +429,40 @@ function game(playGame, pgn, chessboard) {
 
 function playPgn(playGame, parsers, moves, i) {
     let unknown = true;
+    let parsing; 
 
     for (let [key, regex] of Object.entries(parsers)) {
         if (regex.test(moves[i])) {
             unknown = false;
-            console.log(moves[i]);
+            //console.log(moves[i]);
 
             switch (key.charAt(0)) {
                 case 'P':
-                    playGame.pawn(moves[i]);
+                    parsing = playGame.pawn(moves[i]);
                     break;
 
                 case 'R':
-                    playGame.rook(moves[i]);
+                    parsing = playGame.rook(moves[i]);
                     break;
 
                 case 'N':
-                    playGame.knight(moves[i]);
+                    parsing = playGame.knight(moves[i]);
                     break;
 
                 case 'B':
-                    playGame.bishop(moves[i]);
+                    parsing = playGame.bishop(moves[i]);
                     break;
 
                 case 'Q':
-                    playGame.queen(moves[i]);
+                    parsing = playGame.queen(moves[i]);
                     break;
 
                 case 'K':
-                    playGame.king(moves[i]);
+                    parsing = playGame.king(moves[i]);
                     break;
 
                 case 'C':
-                    playGame.castling(moves[i]);
+                    parsing = playGame.castling(moves[i]);
                     break;
             }
         }
@@ -463,5 +472,6 @@ function playPgn(playGame, parsers, moves, i) {
           console.log('Unknown: ' + moves[i]);
       }
 
+      return parsing;
 }
 

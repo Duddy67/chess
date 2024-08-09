@@ -1,7 +1,7 @@
 
 class PlayGame {
     #chessboard;
-    // Regexes used to parse moves.
+    // Regexes used to parse the given moves.
     #parsers = {
         P_move: /^[a-h]{1}[0-8]{1}[\+|\-]?$/, 
         P_capture_dsbg: /^[a-h]{1}x[a-h]{1}[0-8]{1}[\+|\-]?$/,
@@ -28,7 +28,7 @@ class PlayGame {
     }
 
     #parseMove(move) {
-        const parsing = {};
+        const parsing = {move: move};
 
         // Both + and - signs are sometimes used to indicate a decisive advantage for a side or the other.    
         parsing.advantage = move.slice(-1) == '+' || move.slice(-1) == '-' ? move.slice(-1) : '';
@@ -97,6 +97,12 @@ class PlayGame {
 
                         let square = this.#chessboard.getSquare(moves[j]);
 
+                        // A friendly piece is in the way. The piece can't go any further.
+                        if (square.charAt(1) == this.#chessboard.whoseTurnIsIt() && square.charAt(0) != piece) {
+                            // Stop searching in this direction.
+                            break;
+                        }
+
                         if (square == piece + this.#chessboard.whoseTurnIsIt()) {
                             startingPosition = moves[j];
                             break search;
@@ -109,7 +115,9 @@ class PlayGame {
         // Move the piece.
         this.#chessboard.movePiece(piece, parsing.position);
 
-        return {start: startingPosition, end: parsing.position};
+        parsing.start = startingPosition;
+
+        return parsing;
     }
 
     king(move) {
@@ -122,7 +130,7 @@ class PlayGame {
                             'forward', 'backward', 'right', 'left'
         ];
 
-        this.#playMove('K', parsing, directions, 1);
+        return this.#playMove('K', parsing, directions, 1);
     }
 
     queen(move) {
@@ -135,7 +143,7 @@ class PlayGame {
                             'forward', 'backward', 'right', 'left'
         ];
 
-        this.#playMove('Q', parsing, directions);
+        return this.#playMove('Q', parsing, directions);
     }
 
     bishop(move) {
@@ -147,7 +155,7 @@ class PlayGame {
                             'right-diagonal-backward', 'left-diagonal-backward'
         ];
 
-        this.#playMove('B', parsing, directions);
+        return this.#playMove('B', parsing, directions);
     }
 
     rook(move) {
@@ -157,7 +165,7 @@ class PlayGame {
         // Set the directions the rook is allowed to go.
         const directions = ['forward', 'backward', 'right', 'left'];
 
-        this.#playMove('R', parsing, directions);
+        return this.#playMove('R', parsing, directions);
     }
 
     knight(move) {
@@ -171,6 +179,8 @@ class PlayGame {
         const lftRgt = [['left', 'right'], ['left', 'right']];
         const fwdBwd = ['forward', 'backward'];
         let startingPosition;
+
+        // Note: Knight moves are too specific. So they are treated separately.
 
         // Find out the starting position by testing the moves from different directions.
         search: for (let i = 0; i < lftRgt.length; i++) {
@@ -232,76 +242,57 @@ class PlayGame {
 
         // Get the knight object.
         const knight = this.#chessboard.getPieceAtPosition(startingPosition);
-
         // Move the knight.
         this.#chessboard.movePiece(knight, parsing.position);
+
+        parsing.start = startingPosition;
+
+        return parsing;
     }
 
     pawn(move) {
-        const step = stepable(this.#chessboard, this.#chessboard.whoseTurnIsIt());
-
         // Get the parsing of the move.
         const parsing = this.#parseMove(move);
-
+        // Get the destination square.
         let square = this.#chessboard.getSquare(parsing.position);
-        let position = parsing.position;
-        let startingPosition;
 
         // A piece has been captured by the pawn. 
-        // Check the disambiguating variable which is also used for possible "en passant". 
+        // Check the disambiguating variable which is also used for a possible "en passant" move. 
         if (square || parsing.disambiguating) {
-            // First go one step backward.
-            position = step.goOneStepBackward(position);
-
-            // Use the provided file letter. 
-            if (parsing.disambiguating) {
-                startingPosition = parsing.disambiguating + position.charAt(1);
-            }
-            else if (this.#chessboard.getSquare(step.goOneStepRight(position)) == 'P' + this.#chessboard.whoseTurnIsIt()) {
-                startingPosition = step.goOneStepRight(position);
-            }
-            else if (this.#chessboard.getSquare(step.goOneStepLeft(position)) == 'P' + this.#chessboard.whoseTurnIsIt()) {
-                startingPosition = step.goOneStepLeft(position);
-            }
-
+            // Go one step backward right and left in diagonal to get the starting position of the pawn.
+            return this.#playMove('P', parsing, ['right-diagonal-backward', 'left-diagonal-backward'], 1);
         }
         // Pawn regular move.
         else {
-            const steps = 2;
-
             // Go one or two steps backward to get the starting position of the pawn.
-            for (let i = 0; i < steps; i++) {
-                startingPosition = step.goOneStepBackward(position);
-                square = this.#chessboard.getSquare(startingPosition);
-
-                if (square == 'P' + this.#chessboard.whoseTurnIsIt()) {
-                    break;
-                }
-                else {
-                    position = startingPosition;
-                }
-            }
+            return this.#playMove('P', parsing, ['backward'], 2);
         }
-
-        // Get the pawn object.
-        const pawn = this.#chessboard.getPieceAtPosition(startingPosition);
-        // Move the pawn.
-        this.#chessboard.movePiece(pawn, parsing.position, parsing.promotion);
     }
 
     castling(move) {
         // Infer the castling position from both the castling type and the playing side. 
 
         // Get the file letter according to the castling type: kingside (O-O) or queenside(O-O-O).
-        const file = move == 'O-O' ? 'g' : 'c';
+        let file = move == 'O-O' ? 'g' : 'c';
         const rank = this.#chessboard.whoseTurnIsIt() == 'w' ? '1' : '8';
         // Get the king's initial position.
         const startingPosition = 'e' + rank;
+        const endingPosition = file + rank;
 
         // Get the king object.
         const king = this.#chessboard.getPieceAtPosition(startingPosition);
         // Castle.
-        this.#chessboard.movePiece(king, file + rank);
+        this.#chessboard.movePiece(king, endingPosition);
+
+        // Create a parsing object to store the starting and ending positions of the kink and the rook.
+        const parsing = {move: move, king_start: startingPosition, king_end: endingPosition}
+
+        file = move == 'O-O' ? 'h' : 'a';
+        parsing.rook_start = file + rank;
+        file = move == 'O-O' ? 'f' : 'd';
+        parsing.rook_end = file + rank;
+
+        return parsing;
     }
 
     getParsers() {
