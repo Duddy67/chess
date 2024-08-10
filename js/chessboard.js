@@ -164,6 +164,50 @@ class Chessboard {
         }
     }
 
+    #getPlayGameNotation(data) {
+        // Nothing to modify for castling moves.
+        if (data.piece.getType() == 'K' && !data.piece.hasMoved() && this.#castlingSquares.includes(data.to)) {
+            // The move attribute will be set as castling (O-O or O-O-O) in the  movePiece function.
+            return;
+        }
+
+        let captured = this.getSquare(data.to) ? 'x' : '';
+
+        // No disambiguating is needed for the king as it's unique.
+        if (data.piece.getType() == 'K') {
+            return 'K' + captured + data.to;
+        }
+
+        // En passant (ie: a pawn is moved diagonally to an empty square in order to capture the opponent pawn just behind).
+        if (data.piece.getType() == 'P' && data.to.charAt(0) != data.piece.getPosition().charAt(0) && !this.getSquare(data.to)) {
+            captured = 'x';
+        }
+
+        // When a pawn captures a piece (diagonally), the file letter of its starting position is always mentioned.
+        // The disambiguating variable can be used for it.
+        let disambiguating = data.piece.getType() == 'P' && captured ? data.piece.getPosition().charAt(0) : '';
+
+        if (data.piece.getType() != 'P') {
+            for (let i = 0; i < this.#pieces.length; i++) {
+                if (this.#pieces[i].getCode() == data.piece.getCode() && this.#pieces[i].getPosition() != 'xx' && this.#pieces[i].getPosition() != data.piece.getPosition()) {
+                    const moves = this.#pieces[i].getMoves();
+
+                    if (moves.includes(data.to)) {
+                        disambiguating = data.piece.getPosition().charAt(0);
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Pawns are not mentioned in pgn notation.
+        const piece = data.piece.getType() != 'P' ? data.piece.getType() : '';
+        // Check for possible pawn promotion.
+        const promotion = data.newPiece ? '=' + data.newPiece : '';
+
+        return piece + disambiguating + captured + data.to + promotion;
+    }
+
     /*
      * Returns the rook positions before and after the castling.
      */
@@ -234,6 +278,10 @@ class Chessboard {
             'capturedPiece': null,
         };
 
+        // Important: Get the pgn before the move is played as tests for disambiguating 
+        //            won't work once the piece and board attributes have changed. 
+        data.move = this.#getPlayGameNotation(data);
+
         // A piece is captured.
         if (this.getSquare(position)) {
             // Set the captured piece to the xx position.
@@ -273,8 +321,9 @@ class Chessboard {
             this.#board[this.#coordinates[rookPositions.to.charAt(1)]][this.#coordinates[rookPositions.to.charAt(0)]] = 'R' + piece.getSide();
 
             data.specialMove = position == 'g1' || position == 'g8' ? 'O-O' : 'O-O-O'; 
+            data.move = position == 'g1' || position == 'g8' ? 'O-O' : 'O-O-O'; 
         }
-        // En passant (ie: a pawn is moved diagonally to an empty square).
+        // En passant (ie: a pawn is moved diagonally to an empty square in order to capture the opponent pawn just behind).
         else if (piece.getType() == 'P' && position.charAt(0) != piece.getPosition().charAt(0) && !this.getSquare(position)) {
             // Compute the opponent pawn position, which is on the left or right side of the pawn.  
             const opponentPawnPosition = position.charAt(0) + piece.getPosition().charAt(1);
@@ -314,7 +363,6 @@ class Chessboard {
         // Add some extra information to data.
         data.board = this.#board;
         data.pieceCode = piece.getCode();
-        data.move = piece.getType() + position;
 
         this.#history.push(data);
 

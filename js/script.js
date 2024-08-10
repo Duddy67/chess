@@ -17,10 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('puzzle').addEventListener('click', (e) => {
         console.log('puzzle');
-        //console.log(api);
         api.getPuzzleById('001XA').then(data => {
-            //console.log(data.game.pgn);
-            game(playGame, data.game.pgn, chessboard);
+            //game(playGame, data.game.pgn, chessboard);
+
+        console.log(data.game.pgn);
+            playGame.runPuzzle(data.game.pgn);
+            createChessboard(chessboard);
         }).catch(error => {
             console.log('Promise rejected: ' + error.message);
         });
@@ -209,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Dispatched after each move.
     document.addEventListener('move', (e) => {
+        //console.log(e.detail.data);
         updateHistory(chessboard);
         hideKingAttacked();
     });
@@ -430,6 +433,7 @@ function game(playGame, pgn, chessboard) {
 function playPgn(playGame, parsers, moves, i) {
     let unknown = true;
     let parsing; 
+    functions = {P: 'pawn'};
 
     for (let [key, regex] of Object.entries(parsers)) {
         if (regex.test(moves[i])) {

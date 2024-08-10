@@ -298,4 +298,58 @@ class PlayGame {
     getParsers() {
         return this.#parsers;
     }
+
+    runPuzzle(pgn) {
+        let moves = pgn.split(' ');
+moves = moves.slice(0, 25);
+console.log(moves);
+        const parsings = []; 
+        let parsing;
+
+        for (let i = 0; i < moves.length; i++) {
+            for (let [key, regex] of Object.entries(this.#parsers)) {
+                if (regex.test(moves[i])) {
+
+                    switch (key.charAt(0)) {
+                        case 'P':
+                            parsing = this.pawn(moves[i]);
+                            parsings.push(parsing);
+                            break;
+
+                        case 'R':
+                            parsing = this.rook(moves[i]);
+                            parsings.push(parsing);
+                            break;
+
+                        case 'N':
+                            parsing = this.knight(moves[i]);
+                            parsings.push(parsing);
+                            break;
+
+                        case 'B':
+                            parsing = this.bishop(moves[i]);
+                            parsings.push(parsing);
+                            break;
+
+                        case 'Q':
+                            parsing = this.queen(moves[i]);
+                            parsings.push(parsing);
+                            break;
+
+                        case 'K':
+                            parsing = this.king(moves[i]);
+                            parsings.push(parsing);
+                            break;
+
+                        case 'C':
+                            parsing = this.castling(moves[i]);
+                            parsings.push(parsing);
+                            break;
+                    }
+                }
+            }
+        }
+
+        return parsings;
+    }
 }
