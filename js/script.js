@@ -20,9 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
         api.getPuzzleById('001XA').then(data => {
             //game(playGame, data.game.pgn, chessboard);
 
-        console.log(data.game.pgn);
+        //console.log(data.game.pgn);
             playGame.runPuzzle(data.game.pgn);
             createChessboard(chessboard);
+//console.log(chessboard.getHistory());
         }).catch(error => {
             console.log('Promise rejected: ' + error.message);
         });
@@ -207,11 +208,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    document.getElementById('history').addEventListener('click', (e) => {
+        if (e.target.hasAttribute('data-move-number')) {
+            //console.log(e.target.dataset.moveNumber);
+            chessboard.navigateHistory(e.target.dataset.move, e.target.dataset.moveNumber);
+            createChessboard(chessboard);
+        }
+    });
+
     // Check for custom events.
 
     // Dispatched after each move.
     document.addEventListener('move', (e) => {
-        //console.log(e.detail.data);
         updateHistory(chessboard);
         hideKingAttacked();
     });

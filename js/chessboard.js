@@ -34,7 +34,10 @@ class Chessboard {
     // The pieces on the board.
     #pieces = [];
 
+    // The game history.
     #history = [];
+
+    #currentMoveIndex = null;
 
     #castlingSquares = ['c1', 'g1', 'c8', 'g8'];
 
@@ -256,7 +259,12 @@ class Chessboard {
         return this.#MAX_SQUARES;
     }
 
-    getHistory() {
+    getHistory(step) {
+        if (step !== undefined) {
+            return this.#history[step - 1];
+        }
+
+        // Return the whole history.
         return this.#history;
     }
 
@@ -270,12 +278,12 @@ class Chessboard {
     movePiece(piece, position, newPiece) {
         // Collect the move data for history and in case of step back.
         let data = {
-            'piece': piece,
-            'from': piece.getPosition(),
-            'to': position,
-            'newPiece': newPiece === undefined ? null : newPiece,
-            'specialMove': null,
-            'capturedPiece': null,
+            piece: piece,
+            from: piece.getPosition(),
+            to: position,
+            newPiece: newPiece === undefined ? null : newPiece,
+            specialMove: null,
+            capturedPiece: null,
         };
 
         // Important: Get the pgn before the move is played as tests for disambiguating 
@@ -348,9 +356,9 @@ class Chessboard {
 
         // The move can't be played as the king of the side that is playing is (still) under attack.
         if (this.isKingAttacked()) {
-          this.#stepBack(data);
+            this.#stepBack(data);
 
-          return false;
+            return false;
         }
 
         if ((piece.getType() == 'K' || piece.getType() == 'R') && !piece.hasMoved()) {
@@ -361,10 +369,18 @@ class Chessboard {
         this.switchSides();
 
         // Add some extra information to data.
-        data.board = this.#board;
-        data.pieceCode = piece.getCode();
 
-        this.#history.push(data);
+        // Make sure the game is not being replayed (ie: the move data already exists in the history).
+        if (this.#history.length == 0 || this.#currentMoveIndex == this.#history.length - 1) {
+            // Important: Use JSON to deep clone the board nested array.
+            data.board = JSON.parse(JSON.stringify(this.#board));
+            data.pieceCode = piece.getCode();
+
+            // Add the move data to the history.
+            this.#history.push(data);
+            // Set the new current move.
+            this.#currentMoveIndex = this.#history.length - 1;
+        }
 
         this.#sendMoveEvent(data);
 
@@ -381,6 +397,28 @@ class Chessboard {
             if (this.#pieces[i].getCode() == 'K' + this.whoseTurnIsIt()) {
                 return this.#pieces[i].isAttacked();
             }
+        }
+    }
+
+    navigateHistory(move, moveNumber) {
+        const index = moveNumber - 1;
+
+        // The move is already played
+        if (index == this.#currentMoveIndex) {
+            return;
+        }
+
+        if (index < this.#currentMoveIndex) {
+            let i = this.#history.length - 1;
+
+            while (i >= index) {
+                console.log(this.#history[i]);
+                this.#stepBack(this.#history[i]);
+                i--;
+            }
+        }
+        else {
+
         }
     }
 
@@ -510,7 +548,7 @@ class Chessboard {
     }
 
     /*
-     * Reverses all the board data.
+     * Reverses the whole board data.
      */
     flipboard() {
         // First reverse the array rows. 
