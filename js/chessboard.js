@@ -39,6 +39,9 @@ class Chessboard {
 
     #currentMoveIndex = null;
 
+    // Flag used while navigating throughout history.
+    #replay = false;
+
     #castlingSquares = ['c1', 'g1', 'c8', 'g8'];
 
     constructor(board) {
@@ -281,7 +284,8 @@ class Chessboard {
             piece: piece,
             from: piece.getPosition(),
             to: position,
-            newPiece: newPiece === undefined ? null : newPiece,
+            //newPiece: newPiece === undefined ? null : newPiece,
+            newPiece: newPiece,
             specialMove: null,
             capturedPiece: null,
         };
@@ -371,11 +375,10 @@ class Chessboard {
         // Add some extra information to data.
 
         // Make sure the game is not being replayed (ie: the move data already exists in the history).
-        if (this.#history.length == 0 || this.#currentMoveIndex == this.#history.length - 1) {
+        if (!this.#replay) {
             // Important: Use JSON to deep clone the board nested array.
             data.board = JSON.parse(JSON.stringify(this.#board));
             data.pieceCode = piece.getCode();
-
             // Add the move data to the history.
             this.#history.push(data);
             // Set the new current move.
@@ -388,6 +391,9 @@ class Chessboard {
           console.log('King ' + this.whoseTurnIsIt() + ' is attacked');
           this.#sendKingAttackedEvent();
         }
+
+        // Reset the replay flag.
+        this.#replay = false;
 
         return true;
     }
@@ -408,18 +414,39 @@ class Chessboard {
             return;
         }
 
+        const moves = [];
+
         if (index < this.#currentMoveIndex) {
             let i = this.#history.length - 1;
 
-            while (i >= index) {
-                console.log(this.#history[i]);
+            while (i > index) {
                 this.#stepBack(this.#history[i]);
+                this.switchSides();
                 i--;
             }
         }
         else {
+            let i = this.#currentMoveIndex + 1;
 
+            while (i <= index) {
+  console.log(this.#history[i]);
+                // Get the piece to move.
+                const piece = this.getPieceAtPosition(this.#history[i].from);
+
+                // Prevent the move to be stored again in history.
+                this.#replay = true;
+
+                this.movePiece(piece, this.#history[i].to, this.#history[i].newPiece);
+                moves.push(this.#history[i]);
+
+                i++;
+            }
         }
+
+        // Update the current index.
+        this.#currentMoveIndex = index;
+  console.log(this.#currentMoveIndex);
+        return moves;
     }
 
     /*
@@ -545,6 +572,10 @@ class Chessboard {
 
     getSideViewPoint() {
         return this.#sideViewPoint;
+    }
+
+    isReplay() {
+        return this.#replay;
     }
 
     /*
