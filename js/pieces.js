@@ -128,6 +128,10 @@ class King extends Piece {
         this.#moved = true;
     }
 
+    unmoved() {
+        this.#moved = false;
+    }
+
     getMoves() {
         const steps = 1;
         let moves = [];
@@ -281,6 +285,10 @@ class Rook extends Piece {
      */
     moved() {
         this.#moved = true;
+    }
+
+    unmoved() {
+        this.#moved = false;
     }
 
     getMoves() {

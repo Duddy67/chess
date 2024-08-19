@@ -304,7 +304,7 @@ class PlayGame {
      */
     runPuzzle(pgn) {
         let moves = pgn.split(' ');
-moves = moves.slice(0, 25);
+moves = moves.slice(0, 13);
         const parsings = []; 
         // The functions associated with the piece letter.
         const functions = {P: 'pawn', R: 'rook', N: 'knight', B: 'bishop', Q: 'queen', K: 'king', C: 'castling'};

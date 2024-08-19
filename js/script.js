@@ -209,18 +209,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('history').addEventListener('click', (e) => {
         if (e.target.hasAttribute('data-move-number')) {
-            //console.log(e.target.dataset.moveNumber);
-            const moves = chessboard.navigateHistory(e.target.dataset.move, e.target.dataset.moveNumber);
-
+            const currentHistoryIndex = chessboard.getHistoryIndex();
+            const moves = chessboard.navigateHistory(parseInt(e.target.dataset.historyIndex));
+console.log(e.target.dataset.historyIndex);
+            if (e.target.dataset.historyIndex != currentHistoryIndex) {
             if (moves.length) {
                 for (let i = 0; i < moves.length; i++) {
                     movePiece(moves[i].from, moves[i].to, moves[i].newPiece);
+
+                    // In case of castling, move the correponding rook.
+                    if (moves[i].specialMove && moves[i].specialMove.startsWith('O-O')) {
+                        movePiece(moves[i].rookPositions.from, moves[i].rookPositions.to, moves[i].newPiece);
+                    }
                 }
             }
             else {
                 createChessboard(chessboard);
             }
+
+            }
         }
+                       
     });
 
     // Check for custom events.
@@ -249,6 +258,7 @@ function createChessboard(chessboard) {
     const letterRank = chessboard.getSideViewPoint() == 'w' ? 1 : 8;
     const numberFile = chessboard.getSideViewPoint() == 'w' ? 'h' : 'a';
     let pieces = [];
+//console.log(board);
 
     // Delete all possible children.
     document.getElementById('chessboard').replaceChildren();
@@ -398,6 +408,7 @@ function updateHistory(chessboard) {
     tdMove.setAttribute('class', 'move-history');
     tdMove.setAttribute('data-move', history[history.length - 1].move);
     tdMove.setAttribute('data-move-number', chessboard.getHistory().length);
+    tdMove.setAttribute('data-history-index', history.length - 1);
 
     if (chessboard.whoseTurnIsIt() == 'w') {
         tdMove.classList.add('text-end');

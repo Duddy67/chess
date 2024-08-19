@@ -37,9 +37,9 @@ class Chessboard {
     // The game history.
     #history = [];
 
-    #currentMoveIndex = null;
+    #historyIndex = null;
 
-    // Flag used while navigating throughout history.
+    // Flag used while navigating throughout game history.
     #replay = false;
 
     #castlingSquares = ['c1', 'g1', 'c8', 'g8'];
@@ -135,6 +135,29 @@ class Chessboard {
      * Reset the pieces and the board to their previous state.
      */
     #stepBack(data) {
+        // Check first for castling.
+        if (data.specialMove == 'O-O' || data.specialMove == 'O-O-O') {
+            // Set the king back to its initial position on the board.
+            this.#board[this.#coordinates[data.to.charAt(1)]][this.#coordinates[data.to.charAt(0)]] = '';
+            this.#board[this.#coordinates[data.from.charAt(1)]][this.#coordinates[data.from.charAt(0)]] = data.piece.getCode();
+
+            // Set the king object back to its initial position.
+            data.piece.setPosition(data.from);
+            data.piece.unmoved();
+
+            // Set the castling rook back to its initial position on the board.
+            this.#board[this.#coordinates[data.rookPositions.to.charAt(1)]][this.#coordinates[data.rookPositions.to.charAt(0)]] = '';
+            this.#board[this.#coordinates[data.rookPositions.from.charAt(1)]][this.#coordinates[data.rookPositions.from.charAt(0)]] = 'R' + data.pieceCode.charAt(1);
+
+            // Get the castling rook object and set it back to its initial position.
+            const rook = this.getPieceAtPosition(data.rookPositions.to);
+            rook.setPosition(data.rookPositions.from)
+            rook.unmoved();
+
+            // No need to go any further.
+            return;
+        }
+
         // Move the piece back to its starting position.
         data.piece.setPosition(data.from);
         // Check for "en passant".
@@ -267,8 +290,12 @@ class Chessboard {
             return this.#history[step - 1];
         }
 
-        // Return the whole history.
+        // Return the whole game history.
         return this.#history;
+    }
+
+    getHistoryIndex() {
+        return this.#historyIndex;
     }
 
     getCastlingSquares() {
@@ -326,12 +353,16 @@ class Chessboard {
             const rook = this.getPieceAtPosition(rookPositions.from);
             // Rook castling.
             rook.setPosition(rookPositions.to);
-            rook.moved();
 
             // Update the castling rook on the chessboard.
             this.#board[this.#coordinates[rookPositions.from.charAt(1)]][this.#coordinates[rookPositions.from.charAt(0)]] = '';
             this.#board[this.#coordinates[rookPositions.to.charAt(1)]][this.#coordinates[rookPositions.to.charAt(0)]] = 'R' + piece.getSide();
 
+            // King and rook have now moved.
+            piece.moved();
+            rook.moved();
+
+            data.rookPositions = rookPositions;
             data.specialMove = position == 'g1' || position == 'g8' ? 'O-O' : 'O-O-O'; 
             data.move = position == 'g1' || position == 'g8' ? 'O-O' : 'O-O-O'; 
         }
@@ -365,16 +396,11 @@ class Chessboard {
             return false;
         }
 
-        if ((piece.getType() == 'K' || piece.getType() == 'R') && !piece.hasMoved()) {
-            // The king or rook can no longer castling.
-            piece.moved();
-        }
-
         this.switchSides();
 
         // Add some extra information to data.
 
-        // Make sure the game is not being replayed (ie: the move data already exists in the history).
+        // Make sure the game is not being replayed (ie: the move data already exists in the game history).
         if (!this.#replay) {
             // Important: Use JSON to deep clone the board nested array.
             data.board = JSON.parse(JSON.stringify(this.#board));
@@ -382,7 +408,7 @@ class Chessboard {
             // Add the move data to the history.
             this.#history.push(data);
             // Set the new current move.
-            this.#currentMoveIndex = this.#history.length - 1;
+            this.#historyIndex = this.#history.length - 1;
         }
 
         this.#sendMoveEvent(data);
@@ -406,30 +432,33 @@ class Chessboard {
         }
     }
 
-    navigateHistory(move, moveNumber) {
-        const index = moveNumber - 1;
-
-        // The move is already played
-        if (index == this.#currentMoveIndex) {
-            return;
-        }
-
+    navigateHistory(index) {
+        //const index = moveNumber - 1;
+console.log(typeof index);
         const moves = [];
 
-        if (index < this.#currentMoveIndex) {
-            let i = this.#history.length - 1;
+        // The move is already played
+        if (index == this.#historyIndex) {
+            return moves;
+        }
+
+        if (index < this.#historyIndex) {
+            //let i = this.#history.length - 1;
+            let i = this.#historyIndex
 
             while (i > index) {
                 this.#stepBack(this.#history[i]);
                 this.switchSides();
+console.log(this.#board);
                 i--;
             }
         }
         else {
-            let i = this.#currentMoveIndex + 1;
+            //let i = parseInt(this.#historyIndex) + 1;
+            let i = this.#historyIndex + 1;
+console.log('i ' + i);
 
             while (i <= index) {
-  console.log(this.#history[i]);
                 // Get the piece to move.
                 const piece = this.getPieceAtPosition(this.#history[i].from);
 
@@ -437,6 +466,7 @@ class Chessboard {
                 this.#replay = true;
 
                 this.movePiece(piece, this.#history[i].to, this.#history[i].newPiece);
+console.log(this.#board);
                 moves.push(this.#history[i]);
 
                 i++;
@@ -444,8 +474,8 @@ class Chessboard {
         }
 
         // Update the current index.
-        this.#currentMoveIndex = index;
-  console.log(this.#currentMoveIndex);
+        this.#historyIndex = index;
+
         return moves;
     }
 
