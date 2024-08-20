@@ -20,9 +20,10 @@ document.addEventListener('DOMContentLoaded', () => {
         api.getPuzzleById('001XA').then(data => {
             //game(playGame, data.game.pgn, chessboard);
 
-        //console.log(data.game.pgn);
+        console.log(data.puzzle.solution);
             playGame.runPuzzle(data.game.pgn);
             createChessboard(chessboard);
+            chessboard.setPuzzleSolution(data.puzzle.solution);
         }).catch(error => {
             console.log('Promise rejected: ' + error.message);
         });
@@ -30,6 +31,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Listen to click events coming from the chessboard.
     document.getElementById('chessboard').addEventListener('click', (e) => {
+
+        // The player is navigating through history.
+        if (chessboard.getHistoryIndex() < chessboard.getHistory().length - 1) {
+            // No move can be played.
+            return;
+        }
 
         // Promoted pawn moves are handled differently.
         if (selectedPiece.length && selectedPiece[0].getType() == 'P' && selectedPiece[0].isPromoted()) {
@@ -210,26 +217,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('history').addEventListener('click', (e) => {
         if (e.target.hasAttribute('data-move-number')) {
             const currentHistoryIndex = chessboard.getHistoryIndex();
+            // Important: The historyIndex value must be casted to integer or errors will happens in the navigateHistory function. 
             const moves = chessboard.navigateHistory(parseInt(e.target.dataset.historyIndex));
-console.log(e.target.dataset.historyIndex);
-            if (e.target.dataset.historyIndex != currentHistoryIndex) {
-            if (moves.length) {
-                for (let i = 0; i < moves.length; i++) {
-                    movePiece(moves[i].from, moves[i].to, moves[i].newPiece);
 
-                    // In case of castling, move the correponding rook.
-                    if (moves[i].specialMove && moves[i].specialMove.startsWith('O-O')) {
-                        movePiece(moves[i].rookPositions.from, moves[i].rookPositions.to, moves[i].newPiece);
+            // Check first if the move is not already played.
+            if (e.target.dataset.historyIndex != currentHistoryIndex) {
+                if (moves.length) {
+                    for (let i = 0; i < moves.length; i++) {
+                        movePiece(moves[i].from, moves[i].to, moves[i].newPiece);
+
+                        // In case of castling, move the correponding rook.
+                        if (moves[i].specialMove && moves[i].specialMove.startsWith('O-O')) {
+                            movePiece(moves[i].rookPositions.from, moves[i].rookPositions.to, moves[i].newPiece);
+                        }
                     }
                 }
-            }
-            else {
-                createChessboard(chessboard);
-            }
-
+                else {
+                    createChessboard(chessboard);
+                }
             }
         }
-                       
     });
 
     // Check for custom events.

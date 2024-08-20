@@ -128,6 +128,9 @@ class King extends Piece {
         this.#moved = true;
     }
 
+    /*
+     * Unlocks the 'moved' flag. Used when the game is played backward.
+     */
     unmoved() {
         this.#moved = false;
     }
@@ -287,6 +290,9 @@ class Rook extends Piece {
         this.#moved = true;
     }
 
+    /*
+     * Unlocks the 'moved' flag. Used when the game is played backward.
+     */
     unmoved() {
         this.#moved = false;
     }

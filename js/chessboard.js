@@ -37,10 +37,15 @@ class Chessboard {
     // The game history.
     #history = [];
 
+    // Used to navigate throught the game history.
     #historyIndex = null;
 
     // Flag used while navigating throughout game history.
     #replay = false;
+
+    #puzzleSolution = [];
+
+    #startPuzzleIndex = null;
 
     #castlingSquares = ['c1', 'g1', 'c8', 'g8'];
 
@@ -285,9 +290,10 @@ class Chessboard {
         return this.#MAX_SQUARES;
     }
 
-    getHistory(step) {
-        if (step !== undefined) {
-            return this.#history[step - 1];
+    getHistory(index) {
+        // Check for index.
+        if (index !== undefined && index < this.#history.length) {
+            return this.#history[index];
         }
 
         // Return the whole game history.
@@ -320,6 +326,18 @@ class Chessboard {
         // Important: Get the pgn before the move is played as tests for disambiguating 
         //            won't work once the piece and board attributes have changed. 
         data.move = this.#getPlayGameNotation(data);
+
+        if (this.#puzzleSolution.length && this.#historyIndex == this.#history.length - 1) {
+            const solutionIndex = this.#historyIndex - this.#startPuzzleIndex;
+
+            if (solutionIndex < this.#puzzleSolution.length) {
+                console.log('Move: ' + data.move + ' Solution: ' + this.#puzzleSolution[solutionIndex]);
+            }
+            // The puzzle is done.
+            else {
+                return false;
+            }
+        }
 
         // A piece is captured.
         if (this.getSquare(position)) {
@@ -358,7 +376,7 @@ class Chessboard {
             this.#board[this.#coordinates[rookPositions.from.charAt(1)]][this.#coordinates[rookPositions.from.charAt(0)]] = '';
             this.#board[this.#coordinates[rookPositions.to.charAt(1)]][this.#coordinates[rookPositions.to.charAt(0)]] = 'R' + piece.getSide();
 
-            // King and rook have now moved.
+            // Lock the king and rook's 'moved' flag.
             piece.moved();
             rook.moved();
 
@@ -433,8 +451,6 @@ class Chessboard {
     }
 
     navigateHistory(index) {
-        //const index = moveNumber - 1;
-console.log(typeof index);
         const moves = [];
 
         // The move is already played
@@ -443,20 +459,16 @@ console.log(typeof index);
         }
 
         if (index < this.#historyIndex) {
-            //let i = this.#history.length - 1;
             let i = this.#historyIndex
 
             while (i > index) {
                 this.#stepBack(this.#history[i]);
                 this.switchSides();
-console.log(this.#board);
                 i--;
             }
         }
         else {
-            //let i = parseInt(this.#historyIndex) + 1;
             let i = this.#historyIndex + 1;
-console.log('i ' + i);
 
             while (i <= index) {
                 // Get the piece to move.
@@ -466,7 +478,6 @@ console.log('i ' + i);
                 this.#replay = true;
 
                 this.movePiece(piece, this.#history[i].to, this.#history[i].newPiece);
-console.log(this.#board);
                 moves.push(this.#history[i]);
 
                 i++;
@@ -606,6 +617,11 @@ console.log(this.#board);
 
     isReplay() {
         return this.#replay;
+    }
+
+    setPuzzleSolution(solution) {
+        this.#puzzleSolution.splice(0, 0, ...solution);
+        this.#startPuzzleIndex = this.#historyIndex;
     }
 
     /*
