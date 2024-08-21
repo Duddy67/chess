@@ -137,6 +137,19 @@ class Chessboard {
     }
 
     /*
+     * Creates and sends the gameOver event.
+     */
+    #sendGameOverEvent(data) {
+        const event = new CustomEvent('gameOver', {
+            detail: {
+                data: data
+            }
+        });
+
+        document.dispatchEvent(event);
+    }
+
+    /*
      * Reset the pieces and the board to their previous state.
      */
     #stepBack(data) {
@@ -198,7 +211,10 @@ class Chessboard {
         }
     }
 
-    #getPlayGameNotation(data) {
+    /*
+     * SAN
+     */
+    #getStandardAlgebraicNotation(data) {
         // Nothing to modify for castling moves.
         if (data.piece.getType() == 'K' && !data.piece.hasMoved() && this.#castlingSquares.includes(data.to)) {
             // The move attribute will be set as castling (O-O or O-O-O) in the  movePiece function.
@@ -240,6 +256,17 @@ class Chessboard {
         const promotion = data.newPiece ? '=' + data.newPiece : '';
 
         return piece + disambiguating + captured + data.to + promotion;
+    }
+
+    /*
+     * UCI
+     */
+    #getUniverselChessInterfaceNotation(data) {
+        let uci = data.piece.getPosition() + data.to;
+        // Check for possible pawn promotion.
+        const promotion = data.newPiece ? data.newPiece.toLowerCase() : '';
+
+        return uci + promotion;
     }
 
     /*
@@ -323,15 +350,24 @@ class Chessboard {
             capturedPiece: null,
         };
 
-        // Important: Get the pgn before the move is played as tests for disambiguating 
+        // Important: Get the SAN before the move is played as tests for disambiguating 
         //            won't work once the piece and board attributes have changed. 
-        data.move = this.#getPlayGameNotation(data);
+        data.move = this.#getStandardAlgebraicNotation(data);
 
         if (this.#puzzleSolution.length && this.#historyIndex == this.#history.length - 1) {
             const solutionIndex = this.#historyIndex - this.#startPuzzleIndex;
 
             if (solutionIndex < this.#puzzleSolution.length) {
-                console.log('Move: ' + data.move + ' Solution: ' + this.#puzzleSolution[solutionIndex]);
+                console.log('Move: ' + this.#getUniverselChessInterfaceNotation(data) + ' Solution: ' + this.#puzzleSolution[solutionIndex]);
+                if (this.#getUniverselChessInterfaceNotation(data).localeCompare(this.#puzzleSolution[solutionIndex]) === 0) {
+                    if (solutionIndex + 1 < this.#puzzleSolution.length) {
+                        data.nextMove = this.#puzzleSolution[solutionIndex + 1];
+                        //console.log('nextMove');
+                    }
+                }
+                else {
+
+                }
             }
             // The puzzle is done.
             else {

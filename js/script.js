@@ -5,6 +5,9 @@ document.addEventListener('DOMContentLoaded', () => {
     createChessboard(chessboard);
     const api = new Lichess();
     const playGame = new PlayGame(chessboard);
+    let gameOver = false;
+    let computerSide = null;
+    let nextMove;
 
     let selectedPiece = [];
 //console.log(/^[a-h]{1}[0-8]{1}[\+|\-]?$/.test('Fe5-'));
@@ -17,11 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('puzzle').addEventListener('click', (e) => {
         console.log('puzzle');
+        gameOver = false;
         api.getPuzzleById('001XA').then(data => {
             //game(playGame, data.game.pgn, chessboard);
 
         console.log(data.puzzle.solution);
             playGame.runPuzzle(data.game.pgn);
+            computerSide = chessboard.whoseTurnIsIt() == 'w' ? 'b' : 'w';
             createChessboard(chessboard);
             chessboard.setPuzzleSolution(data.puzzle.solution);
         }).catch(error => {
@@ -32,8 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen to click events coming from the chessboard.
     document.getElementById('chessboard').addEventListener('click', (e) => {
 
-        // The player is navigating through history.
-        if (chessboard.getHistoryIndex() < chessboard.getHistory().length - 1) {
+        // The game is over or the player is navigating through history.
+        if (gameOver || (chessboard.getHistoryIndex() < chessboard.getHistory().length - 1)) {
             // No move can be played.
             return;
         }
@@ -136,6 +141,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 hidePossibleMoves();
                 selectedPiece = []
             }
+        }
+
+        if (nextMove) {
+            let move = nextMove;
+            nextMove = '';
+            computer(move, chessboard);
         }
     });
 
@@ -249,6 +260,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         hideKingAttacked();
+
+        if (e.detail.data.hasOwnProperty('nextMove') && chessboard.whoseTurnIsIt() == computerSide) {
+            //console.log(e.detail.data);
+            nextMove = e.detail.data.nextMove;
+        }
     });
 
     document.addEventListener('kingAttacked', (e) => {
@@ -438,6 +454,20 @@ function updateHistory(chessboard) {
     const sideToPlay = chessboard.whoseTurnIsIt() == 'w' ? 'White' : 'Black';
     document.getElementById('sideToPlay').innerHTML = sideToPlay;
 
+}
+
+function computer(move, chessboard) {
+    const promotion = move.length == 5 ? move.charAt(4).toUpperCase() : undefined;
+    const from = move.substring(0, 2);
+    const to = move.substring(2, 4);
+    const piece = chessboard.getPieceAtPosition(from);
+
+    setTimeout(() => {
+        //console.log('from ' + from + ' to ' + to);
+        chessboard.movePiece(piece, to, promotion);
+        console.log(chessboard.getBoard());
+        movePiece(from, to, promotion);
+    }, 1000);
 }
 
 function game(playGame, pgn, chessboard) {
