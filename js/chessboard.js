@@ -212,7 +212,7 @@ class Chessboard {
     }
 
     /*
-     * SAN
+     * Turns a given move into Standard Algebraic Notation (SAN).
      */
     #getStandardAlgebraicNotation(data) {
         // Nothing to modify for castling moves.
@@ -259,7 +259,7 @@ class Chessboard {
     }
 
     /*
-     * UCI
+     * Turns a given move into Universel Chess Interface notation (UCI).
      */
     #getUniverselChessInterfaceNotation(data) {
         let uci = data.piece.getPosition() + data.to;
@@ -267,6 +267,44 @@ class Chessboard {
         const promotion = data.newPiece ? data.newPiece.toLowerCase() : '';
 
         return uci + promotion;
+    }
+
+    #playPuzzle(data) {
+        if (this.#puzzleSolution.length && this.#historyIndex == this.#history.length - 1) {
+            const solutionIndex = this.#historyIndex - this.#startPuzzleIndex;
+
+            if (solutionIndex < this.#puzzleSolution.length) {
+                console.log('Move: ' + this.#getUniverselChessInterfaceNotation(data) + ' Solution: ' + this.#puzzleSolution[solutionIndex]);
+                // Check that the played move is correct.
+                if (this.#getUniverselChessInterfaceNotation(data).localeCompare(this.#puzzleSolution[solutionIndex]) === 0) {
+                    // Set the next move that will be played by the program.
+                    if (solutionIndex + 1 < this.#puzzleSolution.length) {
+                        data.nextPuzzleMove = this.#puzzleSolution[solutionIndex + 1];
+                        //console.log('nextPuzzleMove');
+                    }
+
+                    return true;
+                }
+                // The played move is incorrect.
+                else {
+                    const event = new CustomEvent('incorrectPuzzleMove', {
+                        detail: {
+                            solution: this.#puzzleSolution[solutionIndex]
+                        }
+                    });
+
+                    document.dispatchEvent(event);
+
+                    return false;
+                }
+            }
+            // The puzzle is done.
+            else {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /*
@@ -354,25 +392,9 @@ class Chessboard {
         //            won't work once the piece and board attributes have changed. 
         data.move = this.#getStandardAlgebraicNotation(data);
 
-        if (this.#puzzleSolution.length && this.#historyIndex == this.#history.length - 1) {
-            const solutionIndex = this.#historyIndex - this.#startPuzzleIndex;
-
-            if (solutionIndex < this.#puzzleSolution.length) {
-                console.log('Move: ' + this.#getUniverselChessInterfaceNotation(data) + ' Solution: ' + this.#puzzleSolution[solutionIndex]);
-                if (this.#getUniverselChessInterfaceNotation(data).localeCompare(this.#puzzleSolution[solutionIndex]) === 0) {
-                    if (solutionIndex + 1 < this.#puzzleSolution.length) {
-                        data.nextMove = this.#puzzleSolution[solutionIndex + 1];
-                        //console.log('nextMove');
-                    }
-                }
-                else {
-
-                }
-            }
-            // The puzzle is done.
-            else {
-                return false;
-            }
+        // Check for a possible puzzle in play.
+        if (!this.#playPuzzle(data)) {
+            return false;
         }
 
         // A piece is captured.
@@ -653,6 +675,32 @@ class Chessboard {
 
     isReplay() {
         return this.#replay;
+    }
+
+    reset() {
+        this.#board.length = 0;
+        this.#pieces.length = 0;
+        this.#history.length = 0;
+        this.#puzzleSolution.length = 0;
+        this.#historyIndex = null;
+        this.#replay = false;
+
+
+        this.#board = [ 
+            ['Rb', 'Nb', 'Bb', 'Qb', 'Kb', 'Bb', 'Nb', 'Rb'],
+            ['Pb', 'Pb', 'Pb', 'Pb', 'Pb', 'Pb', 'Pb', 'Pb'],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['Pw', 'Pw', 'Pw', 'Pw', 'Pw', 'Pw', 'Pw', 'Pw'],
+            ['Rw', 'Nw', 'Bw', 'Qw', 'Kw', 'Bw', 'Nw', 'Rw'],
+        ];
+
+        this.#side = 'w';
+        this.#sideViewPoint = 'w';
+
+        this.#setPieces();
     }
 
     setPuzzleSolution(solution) {

@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const playGame = new PlayGame(chessboard);
     let gameOver = false;
     let computerSide = null;
-    let nextMove;
+    let nextPuzzleMove;
+    let totalPuzzleMoves;
 
     let selectedPiece = [];
 //console.log(/^[a-h]{1}[0-8]{1}[\+|\-]?$/.test('Fe5-'));
@@ -19,7 +20,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('puzzle').addEventListener('click', (e) => {
-        console.log('puzzle');
+        // A game is currently running.
+        if (chessboard.getHistory().length) {
+            if (window.confirm('A game is currently running. Are you sure ?')) {
+                chessboard.reset();
+                // Clear history.
+                document.getElementById('history').getElementsByTagName('tbody')[0].innerHTML = '';
+            }
+            else {
+                return;
+            }
+        }
+
         gameOver = false;
         api.getPuzzleById('001XA').then(data => {
             //game(playGame, data.game.pgn, chessboard);
@@ -29,9 +41,29 @@ document.addEventListener('DOMContentLoaded', () => {
             computerSide = chessboard.whoseTurnIsIt() == 'w' ? 'b' : 'w';
             createChessboard(chessboard);
             chessboard.setPuzzleSolution(data.puzzle.solution);
+            totalPuzzleMoves = chessboard.getHistory().length + data.puzzle.solution.length;
+        //console.log(totalPuzzleMoves);
+
         }).catch(error => {
             console.log('Promise rejected: ' + error.message);
         });
+    });
+
+    document.getElementById('reset').addEventListener('click', (e) => {
+        // A game is currently running.
+        if (chessboard.getHistory().length) {
+            if (window.confirm('A game is currently running. Are you sure ?')) {
+                chessboard.reset();
+                createChessboard(chessboard);
+                // Clear history.
+                document.getElementById('history').getElementsByTagName('tbody')[0].innerHTML = '';
+                console.log(chessboard.getBoard());
+                console.log(chessboard.getPieces());
+            }
+            else {
+                return;
+            }
+        }
     });
 
     // Listen to click events coming from the chessboard.
@@ -143,10 +175,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if (nextMove) {
-            let move = nextMove;
-            nextMove = '';
+        if (nextPuzzleMove) {
+            // Save the move value.
+            let move = nextPuzzleMove;
+            // Reset the flag.
+            nextPuzzleMove = '';
+            // Play the puzzle move.
             computer(move, chessboard);
+        }
+
+        // Check for the last move of the puzzle.
+        if (chessboard.getHistory().length == totalPuzzleMoves) {
+            gameOver = true;
         }
     });
 
@@ -261,15 +301,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         hideKingAttacked();
 
-        if (e.detail.data.hasOwnProperty('nextMove') && chessboard.whoseTurnIsIt() == computerSide) {
+        // Check for a possible next puzzle move that has to be played by the program.
+        if (e.detail.data.hasOwnProperty('nextPuzzleMove') && chessboard.whoseTurnIsIt() == computerSide) {
             //console.log(e.detail.data);
-            nextMove = e.detail.data.nextMove;
+            nextPuzzleMove = e.detail.data.nextPuzzleMove;
         }
     });
 
     document.addEventListener('kingAttacked', (e) => {
         const square = document.getElementById(e.detail.kingPosition)
         square.classList.add('king-attacked');
+    });
+
+    document.addEventListener('incorrectPuzzleMove', (e) => {
+        console.log(e.detail);
     });
 });
 
@@ -467,7 +512,7 @@ function computer(move, chessboard) {
         chessboard.movePiece(piece, to, promotion);
         console.log(chessboard.getBoard());
         movePiece(from, to, promotion);
-    }, 1000);
+    }, 500);
 }
 
 function game(playGame, pgn, chessboard) {

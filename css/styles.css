@@ -155,3 +155,12 @@
    margin-right: 5%;
 }
 
+/* Reverses the striped table colors */
+/*.table-striped > tbody > tr:nth-child(2n+1) > td, .table-striped > tbody > tr:nth-child(2n+1) > th {
+   background-color: white;
+}*/
+
+.table-striped > tbody > tr:nth-child(2n+2) > td, .table-striped > tbody > tr:nth-child(2n+2) > th {
+  background-color: #424242;
+  color: white;
+}
