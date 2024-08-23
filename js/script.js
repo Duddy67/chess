@@ -3,20 +3,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const chessboard = new Chessboard();
     createChessboard(chessboard);
-    const api = new Lichess();
-    const playGame = new PlayGame(chessboard);
+    setInformation(chessboard);
     let gameOver = false;
+    let selectedPiece = [];
+
+    // Used for puzzles.
+    const playGame = new PlayGame(chessboard);
+    const api = new Lichess();
     let computerSide = null;
     let nextPuzzleMove;
-    let totalPuzzleMoves;
-
-    let selectedPiece = [];
-//console.log(/^[a-h]{1}[0-8]{1}[\+|\-]?$/.test('Fe5-'));
+    let totalPuzzleMoves = null;
 
     document.getElementById('flipBoard').addEventListener('click', (e) => {
         chessboard.flipboard();
         createChessboard(chessboard);
-        //console.log(chessboard.getBoard());
     });
 
     document.getElementById('puzzle').addEventListener('click', (e) => {
@@ -42,6 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
             createChessboard(chessboard);
             chessboard.setPuzzleSolution(data.puzzle.solution);
             totalPuzzleMoves = chessboard.getHistory().length + data.puzzle.solution.length;
+            clearInformation();
+            setInformation(chessboard, computerSide);
         //console.log(totalPuzzleMoves);
 
         }).catch(error => {
@@ -55,10 +57,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.confirm('A game is currently running. Are you sure ?')) {
                 chessboard.reset();
                 createChessboard(chessboard);
+                totalPuzzleMoves = null;
+                gameOver = false;
                 // Clear history.
                 document.getElementById('history').getElementsByTagName('tbody')[0].innerHTML = '';
-                console.log(chessboard.getBoard());
-                console.log(chessboard.getPieces());
+                clearInformation();
+                setInformation(chessboard);
             }
             else {
                 return;
@@ -178,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (nextPuzzleMove) {
             // Save the move value.
             let move = nextPuzzleMove;
-            // Reset the flag.
+            // Reset the flag now.
             nextPuzzleMove = '';
             // Play the puzzle move.
             computer(move, chessboard);
@@ -187,6 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check for the last move of the puzzle.
         if (chessboard.getHistory().length == totalPuzzleMoves) {
             gameOver = true;
+            // Update information.
+            document.getElementById('gameInformation').innerHTML = '';
+            document.getElementById('puzzleInformation').innerHTML = 'Success !';
         }
     });
 
@@ -303,7 +310,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Check for a possible next puzzle move that has to be played by the program.
         if (e.detail.data.hasOwnProperty('nextPuzzleMove') && chessboard.whoseTurnIsIt() == computerSide) {
-            //console.log(e.detail.data);
             nextPuzzleMove = e.detail.data.nextPuzzleMove;
         }
     });
@@ -315,6 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('incorrectPuzzleMove', (e) => {
         console.log(e.detail);
+        document.getElementById('puzzleInformation').innerHTML = 'This is not the right move. Solution: ' + e.detail.solution;
     });
 });
 
@@ -326,7 +333,6 @@ function createChessboard(chessboard) {
     const letterRank = chessboard.getSideViewPoint() == 'w' ? 1 : 8;
     const numberFile = chessboard.getSideViewPoint() == 'w' ? 'h' : 'a';
     let pieces = [];
-//console.log(board);
 
     // Delete all possible children.
     document.getElementById('chessboard').replaceChildren();
@@ -496,9 +502,7 @@ function updateHistory(chessboard) {
     const wrapper = document.getElementById('history-wrapper');
     wrapper.scrollTop = wrapper.scrollHeight;
 
-    const sideToPlay = chessboard.whoseTurnIsIt() == 'w' ? 'White' : 'Black';
-    document.getElementById('sideToPlay').innerHTML = sideToPlay;
-
+    setInformation(chessboard);
 }
 
 function computer(move, chessboard) {
@@ -507,6 +511,7 @@ function computer(move, chessboard) {
     const to = move.substring(2, 4);
     const piece = chessboard.getPieceAtPosition(from);
 
+    // Add a 500 milliseconde delay before playing the move.
     setTimeout(() => {
         //console.log('from ' + from + ' to ' + to);
         chessboard.movePiece(piece, to, promotion);
@@ -515,79 +520,19 @@ function computer(move, chessboard) {
     }, 500);
 }
 
-function game(playGame, pgn, chessboard) {
-    let moves = pgn.split(' ');
-    console.log(moves);
-    let delay = 1000; // Start with a 1-second delay
-
-    const parsers = playGame.getParsers();
-
-    //moves = ['d4', 'e5', 'f4', 'g5', 'dxe5', 'd5', 'exd6'];
-    for (let i = 0; i < moves.length; i++) {
-
-        setTimeout(() => {
-            let parsing = playPgn(playGame, parsers, moves, i);
-            console.log(parsing);
-            //createChessboard(chessboard);
-            if (parsing.move == 'O-O' || parsing.move == 'O-O-O') {
-                movePiece(parsing.king_start, parsing.king_end);
-                movePiece(parsing.rook_start, parsing.rook_end);
-            }
-            else {
-                movePiece(parsing.start, parsing.position, parsing.promotion);
-            }
-        }, delay);
-
-        delay += 2000; // Increase the delay by 1 second for each iteration
+function setInformation(chessboard) {
+    // A puzzle is running.
+    if (chessboard.getPuzzleSolution().length) {
+        const computerSide = chessboard.getStartPuzzleIndex() % 2 ? 'White' : 'Black';
+        document.getElementById('gameInformation').innerHTML = 'Find the best move for ' + computerSide;
+    }
+    // Standard game.
+    else {
+        document.getElementById('gameInformation').innerHTML = (chessboard.whoseTurnIsIt() == 'w' ? 'White' : 'Black') + ' to play.';
     }
 }
 
-function playPgn(playGame, parsers, moves, i) {
-    let unknown = true;
-    let parsing; 
-    functions = {P: 'pawn'};
-
-    for (let [key, regex] of Object.entries(parsers)) {
-        if (regex.test(moves[i])) {
-            unknown = false;
-            //console.log(moves[i]);
-
-            switch (key.charAt(0)) {
-                case 'P':
-                    parsing = playGame.pawn(moves[i]);
-                    break;
-
-                case 'R':
-                    parsing = playGame.rook(moves[i]);
-                    break;
-
-                case 'N':
-                    parsing = playGame.knight(moves[i]);
-                    break;
-
-                case 'B':
-                    parsing = playGame.bishop(moves[i]);
-                    break;
-
-                case 'Q':
-                    parsing = playGame.queen(moves[i]);
-                    break;
-
-                case 'K':
-                    parsing = playGame.king(moves[i]);
-                    break;
-
-                case 'C':
-                    parsing = playGame.castling(moves[i]);
-                    break;
-            }
-        }
-    }
-
-      if (unknown) {
-          console.log('Unknown: ' + moves[i]);
-      }
-
-      return parsing;
+function clearInformation() {
+    document.getElementById('gameInformation').innerHTML = '';
+    document.getElementById('puzzleInformation').innerHTML = '';
 }
-

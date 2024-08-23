@@ -155,6 +155,19 @@
    margin-right: 5%;
 }
 
+.game-information {
+  background-color: #cdcdcd;
+  padding: 5px;
+}
+
+.game-information span {
+   font-size: 1.2rem;
+}
+
+.puzzle-information {
+  display: block;
+}
+
 /* Reverses the striped table colors */
 /*.table-striped > tbody > tr:nth-child(2n+1) > td, .table-striped > tbody > tr:nth-child(2n+1) > th {
    background-color: white;

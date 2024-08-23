@@ -43,6 +43,7 @@ class Chessboard {
     // Flag used while navigating throughout game history.
     #replay = false;
 
+    // The puzzle moves.
     #puzzleSolution = [];
 
     #startPuzzleIndex = null;
@@ -271,22 +272,22 @@ class Chessboard {
 
     #playPuzzle(data) {
         if (this.#puzzleSolution.length && this.#historyIndex == this.#history.length - 1) {
+            // Compute the current index.
             const solutionIndex = this.#historyIndex - this.#startPuzzleIndex;
 
             if (solutionIndex < this.#puzzleSolution.length) {
-                console.log('Move: ' + this.#getUniverselChessInterfaceNotation(data) + ' Solution: ' + this.#puzzleSolution[solutionIndex]);
                 // Check that the played move is correct.
                 if (this.#getUniverselChessInterfaceNotation(data).localeCompare(this.#puzzleSolution[solutionIndex]) === 0) {
                     // Set the next move that will be played by the program.
                     if (solutionIndex + 1 < this.#puzzleSolution.length) {
                         data.nextPuzzleMove = this.#puzzleSolution[solutionIndex + 1];
-                        //console.log('nextPuzzleMove');
                     }
 
                     return true;
                 }
                 // The played move is incorrect.
                 else {
+                    // Fire the incorrectPuzzleMove event.
                     const event = new CustomEvent('incorrectPuzzleMove', {
                         detail: {
                             solution: this.#puzzleSolution[solutionIndex]
@@ -677,6 +678,7 @@ class Chessboard {
         return this.#replay;
     }
 
+    // Set all the pieces back to their initial position.
     reset() {
         this.#board.length = 0;
         this.#pieces.length = 0;
@@ -684,7 +686,6 @@ class Chessboard {
         this.#puzzleSolution.length = 0;
         this.#historyIndex = null;
         this.#replay = false;
-
 
         this.#board = [ 
             ['Rb', 'Nb', 'Bb', 'Qb', 'Kb', 'Bb', 'Nb', 'Rb'],
@@ -706,6 +707,14 @@ class Chessboard {
     setPuzzleSolution(solution) {
         this.#puzzleSolution.splice(0, 0, ...solution);
         this.#startPuzzleIndex = this.#historyIndex;
+    }
+
+    getPuzzleSolution() {
+        return this.#puzzleSolution;
+    }
+
+    getStartPuzzleIndex() {
+        return this.#startPuzzleIndex;
     }
 
     /*
