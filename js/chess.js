@@ -1,6 +1,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    // Initialize the needed variables.
     const chessboard = new Chessboard();
     createChessboard(chessboard);
     setInformation(chessboard);
@@ -8,11 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedPiece = [];
 
     // Used for puzzles.
-    const playGame = new PlayGame(chessboard);
+    const puzzle = new Puzzle(chessboard);
     const api = new Lichess();
     let computerSide = null;
     let nextPuzzleMove;
     let totalPuzzleMoves = null;
+
+    // Listen to events.
 
     document.getElementById('flipBoard').addEventListener('click', (e) => {
         chessboard.flipboard();
@@ -33,19 +36,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         gameOver = false;
-        api.getPuzzleById('001XA').then(data => {
-            //game(playGame, data.game.pgn, chessboard);
 
-        console.log(data.puzzle.solution);
-            playGame.runPuzzle(data.game.pgn);
+        api.getPuzzleById('001XA').then(data => {
+
+            puzzle.run(data.game.pgn);
             computerSide = chessboard.whoseTurnIsIt() == 'w' ? 'b' : 'w';
             createChessboard(chessboard);
             chessboard.setPuzzleSolution(data.puzzle.solution);
             totalPuzzleMoves = chessboard.getHistory().length + data.puzzle.solution.length;
             clearInformation();
             setInformation(chessboard, computerSide);
-        //console.log(totalPuzzleMoves);
-
         }).catch(error => {
             console.log('Promise rejected: ' + error.message);
         });
@@ -182,10 +182,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (nextPuzzleMove) {
             // Save the move value.
             let move = nextPuzzleMove;
-            // Reset the flag now.
+            // Reset the flag BEFORE invoking the computer function.
             nextPuzzleMove = '';
             // Play the puzzle move.
-            computer(move, chessboard);
+            playMove(move, chessboard);
         }
 
         // Check for the last move of the puzzle.
@@ -319,8 +319,8 @@ document.addEventListener('DOMContentLoaded', () => {
         square.classList.add('king-attacked');
     });
 
+    // A puzzle is running and the latest player's move is incorrect.
     document.addEventListener('incorrectPuzzleMove', (e) => {
-        console.log(e.detail);
         document.getElementById('puzzleInformation').innerHTML = 'This is not the right move. Solution: ' + e.detail.solution;
     });
 });
@@ -505,7 +505,10 @@ function updateHistory(chessboard) {
     setInformation(chessboard);
 }
 
-function computer(move, chessboard) {
+/*
+ * A given move is played by the program.
+ */
+function playMove(move, chessboard) {
     const promotion = move.length == 5 ? move.charAt(4).toUpperCase() : undefined;
     const from = move.substring(0, 2);
     const to = move.substring(2, 4);
@@ -513,9 +516,8 @@ function computer(move, chessboard) {
 
     // Add a 500 milliseconde delay before playing the move.
     setTimeout(() => {
-        //console.log('from ' + from + ' to ' + to);
         chessboard.movePiece(piece, to, promotion);
-        console.log(chessboard.getBoard());
+        //console.log(chessboard.getBoard());
         movePiece(from, to, promotion);
     }, 500);
 }

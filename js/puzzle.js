@@ -1,7 +1,7 @@
 
-class PlayGame {
+class Puzzle {
     #chessboard;
-    // Regexes used to parse the given moves.
+    // Regexes used to parse the given moves in Standard Algebraic Notation (SAN).
     #parsers = {
         P_move: /^[a-h]{1}[0-8]{1}[\+|\-]?$/, 
         P_capture_dsbg: /^[a-h]{1}x[a-h]{1}[0-8]{1}[\+|\-]?$/,
@@ -302,7 +302,7 @@ class PlayGame {
     /*
      * Run the given pgn from start to end in one go.
      */
-    runPuzzle(pgn) {
+    run(pgn) {
         let moves = pgn.split(' ');
 //moves = moves.slice(0, 13);
         const parsings = []; 

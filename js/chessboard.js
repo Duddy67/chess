@@ -251,7 +251,7 @@ class Chessboard {
             }
         }
 
-        // Pawns are not mentioned in pgn notation.
+        // Pawns are not mentioned in SAN notation.
         const piece = data.piece.getType() != 'P' ? data.piece.getType() : '';
         // Check for possible pawn promotion.
         const promotion = data.newPiece ? '=' + data.newPiece : '';
@@ -305,6 +305,7 @@ class Chessboard {
             }
         }
 
+        // No puzzle is running.
         return true;
     }
 
@@ -680,12 +681,20 @@ class Chessboard {
 
     // Set all the pieces back to their initial position.
     reset() {
+        // Check first whether the board is flipped.
+        if (this.#sideViewPoint == 'b') {
+            // Flip the board back to its initial position (ie: from the white viewpoint).
+            this.flipboard();
+        }
+
+        // Reset variables.
         this.#board.length = 0;
         this.#pieces.length = 0;
         this.#history.length = 0;
         this.#puzzleSolution.length = 0;
         this.#historyIndex = null;
         this.#replay = false;
+        this.#side = 'w';
 
         this.#board = [ 
             ['Rb', 'Nb', 'Bb', 'Qb', 'Kb', 'Bb', 'Nb', 'Rb'],
@@ -697,9 +706,6 @@ class Chessboard {
             ['Pw', 'Pw', 'Pw', 'Pw', 'Pw', 'Pw', 'Pw', 'Pw'],
             ['Rw', 'Nw', 'Bw', 'Qw', 'Kw', 'Bw', 'Nw', 'Rw'],
         ];
-
-        this.#side = 'w';
-        this.#sideViewPoint = 'w';
 
         this.#setPieces();
     }
