@@ -304,7 +304,8 @@ class Puzzle {
      */
     run(pgn) {
         let moves = pgn.split(' ');
-//moves = moves.slice(0, 13);
+//console.log(moves);
+moves = moves.slice(0, 112);
         const parsings = []; 
         // The functions associated with the piece letter.
         const functions = {P: 'pawn', R: 'rook', N: 'knight', B: 'bishop', Q: 'queen', K: 'king', C: 'castling'};
@@ -314,6 +315,7 @@ class Puzzle {
                 if (regex.test(moves[i])) {
                     // Execute the appropriate function according to the piece letter (key) returned by the parser.
                     let parsing = this[functions[key.charAt(0)]](moves[i]);
+
                     parsings.push(parsing);
                 }
             }

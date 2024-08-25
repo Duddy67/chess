@@ -476,6 +476,11 @@ class Chessboard {
 
         this.switchSides();
 
+        // Once moved, the king and rook pieces can no longer castling.
+        if (piece.getType() == 'K' || piece.getType() == 'R') {
+            piece.moved(); 
+        }
+
         // Add some extra information to data.
 
         // Make sure the game is not being replayed (ie: the move data already exists in the game history).
@@ -492,7 +497,6 @@ class Chessboard {
         this.#sendMoveEvent(data);
 
         if (this.isKingAttacked()) {
-          console.log('King ' + this.whoseTurnIsIt() + ' is attacked');
           this.#sendKingAttackedEvent();
         }
 
@@ -684,7 +688,7 @@ class Chessboard {
         // Check first whether the board is flipped.
         if (this.#sideViewPoint == 'b') {
             // Flip the board back to its initial position (ie: from the white viewpoint).
-            this.flipboard();
+            this.flipBoard();
         }
 
         // Reset variables.
@@ -726,7 +730,7 @@ class Chessboard {
     /*
      * Reverses the whole board data.
      */
-    flipboard() {
+    flipBoard() {
         // First reverse the array rows. 
         this.#board.reverse();
 

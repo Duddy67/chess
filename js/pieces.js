@@ -190,7 +190,8 @@ class King extends Piece {
                         return true;
                     }
                     // A pawn can capture a piece only if the piece stands on the next square diagonally.
-                    else if (course.length == 1) {
+                    else if (attacker == 'P' && course.length == 1) {
+console.log(course);
                         return true;
                     }
                 }

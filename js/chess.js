@@ -18,30 +18,39 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen to events.
 
     document.getElementById('flipBoard').addEventListener('click', (e) => {
-        chessboard.flipboard();
+        chessboard.flipBoard();
         createChessboard(chessboard);
     });
 
     document.getElementById('puzzle').addEventListener('click', (e) => {
-        // A game is currently running.
-        if (chessboard.getHistory().length) {
-            if (window.confirm('A game is currently running. Are you sure ?')) {
-                chessboard.reset();
-                // Clear history.
-                document.getElementById('history').getElementsByTagName('tbody')[0].innerHTML = '';
-            }
-            else {
+        // Check first if a game is currently running.
+        if (chessboard.getHistory().length && !gameOver) {
+            if (!window.confirm('A game is currently running. Are you sure ?')) {
                 return;
             }
         }
 
+        chessboard.reset();
+        // Clear history.
+        document.getElementById('history').getElementsByTagName('tbody')[0].innerHTML = '';
         gameOver = false;
 
-        api.getPuzzleById('001XA').then(data => {
-
+        getPuzzleId().then(data => {
+            console.log('Puzzle id: ' + data);
+            data = '0idoV';
+            // Chain the second request once the random puzzle id is returned.
+            return api.getPuzzleById(data);
+        }).then(data => {
             puzzle.run(data.game.pgn);
             computerSide = chessboard.whoseTurnIsIt() == 'w' ? 'b' : 'w';
+
+            /*if (computerSide == 'w') {
+                // Set the board to black view point.
+                chessboard.flipBoard();
+            }*/
+
             createChessboard(chessboard);
+
             chessboard.setPuzzleSolution(data.puzzle.solution);
             totalPuzzleMoves = chessboard.getHistory().length + data.puzzle.solution.length;
             clearInformation();
@@ -317,6 +326,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('kingAttacked', (e) => {
         const square = document.getElementById(e.detail.kingPosition)
         square.classList.add('king-attacked');
+        console.log('King ' + chessboard.whoseTurnIsIt() + ' is attacked');
     });
 
     // A puzzle is running and the latest player's move is incorrect.
@@ -517,7 +527,6 @@ function playMove(move, chessboard) {
     // Add a 500 milliseconde delay before playing the move.
     setTimeout(() => {
         chessboard.movePiece(piece, to, promotion);
-        //console.log(chessboard.getBoard());
         movePiece(from, to, promotion);
     }, 500);
 }
@@ -537,4 +546,20 @@ function setInformation(chessboard) {
 function clearInformation() {
     document.getElementById('gameInformation').innerHTML = '';
     document.getElementById('puzzleInformation').innerHTML = '';
+}
+
+async function getPuzzleId() {
+    // Make a request to the PHP endpoint
+    const response = await fetch(window.location.origin + '/chess/api/data.php', {
+                               method: 'GET',
+                           });
+
+    // Throw an error in case the response status is different from 200 (ie: OK).
+    if (response.status !== 200) {
+        throw new Error('Couldn\'t fetch the data. status: ' + response.status);
+    }
+
+    const result = await response.text();
+
+    return result;
 }
