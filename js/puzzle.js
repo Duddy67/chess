@@ -304,8 +304,8 @@ class Puzzle {
      */
     run(pgn) {
         let moves = pgn.split(' ');
-//console.log(moves);
-moves = moves.slice(0, 112);
+        //console.log(moves); // For debuging purpose.
+        //moves = moves.slice(0, 118);
         const parsings = []; 
         // The functions associated with the piece letter.
         const functions = {P: 'pawn', R: 'rook', N: 'knight', B: 'bishop', Q: 'queen', K: 'king', C: 'castling'};

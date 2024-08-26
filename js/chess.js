@@ -37,17 +37,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         getPuzzleId().then(data => {
             console.log('Puzzle id: ' + data);
-            data = '0idoV';
+            //data = '03vYY'; // Debug: To test specific puzzles.
             // Chain the second request once the random puzzle id is returned.
             return api.getPuzzleById(data);
         }).then(data => {
             puzzle.run(data.game.pgn);
             computerSide = chessboard.whoseTurnIsIt() == 'w' ? 'b' : 'w';
 
-            /*if (computerSide == 'w') {
+            if (computerSide == 'w') {
                 // Set the board to black view point.
                 chessboard.flipBoard();
-            }*/
+            }
 
             createChessboard(chessboard);
 
@@ -302,6 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 else {
                     createChessboard(chessboard);
                 }
+
+                updateHistoryIndex(e.target.dataset.moveNumber);
             }
         }
     });
@@ -326,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('kingAttacked', (e) => {
         const square = document.getElementById(e.detail.kingPosition)
         square.classList.add('king-attacked');
-        console.log('King ' + chessboard.whoseTurnIsIt() + ' is attacked');
+        //console.log('King ' + chessboard.whoseTurnIsIt() + ' is attacked'); // For debuging purpose.
     });
 
     // A puzzle is running and the latest player's move is incorrect.
@@ -486,9 +488,12 @@ function movePiece(from, to, newPiece) {
 
 function updateHistory(chessboard) {
     const history = chessboard.getHistory();
+
     let tr = document.createElement('tr');
     let tdIndex = document.createElement('td');
     let tdMove = document.createElement('td');
+    //tdIndex.setAttribute('class', 'history-index');
+    tdIndex.setAttribute('id', 'history-index-' + chessboard.getHistory().length);
     tdMove.setAttribute('class', 'move-history');
     tdMove.setAttribute('data-move', history[history.length - 1].move);
     tdMove.setAttribute('data-move-number', chessboard.getHistory().length);
@@ -512,7 +517,23 @@ function updateHistory(chessboard) {
     const wrapper = document.getElementById('history-wrapper');
     wrapper.scrollTop = wrapper.scrollHeight;
 
+    updateHistoryIndex(chessboard.getHistory().length);
+
     setInformation(chessboard);
+}
+
+function updateHistoryIndex(index) {
+    // Get the latest element (if any) containing a 'history-index' class.
+    const elements = document.getElementsByClassName('history-index');
+
+    // Check the element exists. (N.B: there can only be one element)
+    if (elements[0]) {
+        elements[0].classList.remove('history-index');
+    }
+
+    // Get the new element to update.
+    const element = document.getElementById('history-index-' + index);
+    element.classList.add('history-index');
 }
 
 /*

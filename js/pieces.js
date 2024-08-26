@@ -190,9 +190,20 @@ class King extends Piece {
                         return true;
                     }
                     // A pawn can capture a piece only if the piece stands on the next square diagonally.
-                    else if (attacker == 'P' && course.length == 1) {
-console.log(course);
-                        return true;
+                    else if (course.length == 1) {
+                        // Pawns can only go forward. So the pawn's direction has to be figured out first. 
+
+                        // Get the row the pawn is standing on.
+                        const pawnRow = course[0].charAt(1);
+                        // Compute the side the pawn is on.
+                        const pawnSide = this.getSide() == 'w' ? 'b' : 'w';
+                        // Then compute on which row the pawn can go next according to its side.
+                        const pawnNextRow = pawnSide == 'w' ? parseInt(pawnRow) + 1 : parseInt(pawnRow) - 1;
+
+                        // Now make sure the king can be attacked by the pawn.
+                        if (this.getPosition().charAt(1) == pawnNextRow) {
+                            return true;
+                        }
                     }
                 }
             }
