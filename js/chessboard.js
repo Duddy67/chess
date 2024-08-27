@@ -265,7 +265,8 @@ class Chessboard {
     #getUniverselChessInterfaceNotation(data) {
         let uci = data.piece.getPosition() + data.to;
         // Check for possible pawn promotion.
-        const promotion = data.newPiece ? data.newPiece.toLowerCase() : '';
+        // N.B: Get only the piece letter in lower case. The piece side letter is not used. 
+        const promotion = data.newPiece ? data.newPiece.toLowerCase().charAt(0) : '';
 
         return uci + promotion;
     }

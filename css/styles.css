@@ -170,6 +170,7 @@
 
 .history-index {
   background-color: red !important;
+  width: 25%;
 }
 
 /* Reverses the striped table colors */

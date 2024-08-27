@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         getPuzzleId().then(data => {
             console.log('Puzzle id: ' + data);
-            //data = '03vYY'; // Debug: To test specific puzzles.
+            //data = '0Qeu6'; // Debug: To test specific puzzles.
             // Chain the second request once the random puzzle id is returned.
             return api.getPuzzleById(data);
         }).then(data => {
@@ -540,7 +540,8 @@ function updateHistoryIndex(index) {
  * A given move is played by the program.
  */
 function playMove(move, chessboard) {
-    const promotion = move.length == 5 ? move.charAt(4).toUpperCase() : undefined;
+    // Make sure the piece letter is in uppercase and followed by the side letter.
+    const promotion = move.length == 5 ? move.charAt(4).toUpperCase() + chessboard.whoseTurnIsIt() : undefined;
     const from = move.substring(0, 2);
     const to = move.substring(2, 4);
     const piece = chessboard.getPieceAtPosition(from);

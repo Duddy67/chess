@@ -10,9 +10,9 @@ class Puzzle {
         R_capture: /^Rx[a-h]{1}[0-8]{1}[\+|\-]?$/,
         R_capture_dsbg: /^R[a-h]{1}x[a-h]{1}[0-8]{1}[\+|\-]?$/,
         N_move: /^N[a-h]{1}[0-8]{1}[\+|\-]?$/,
-        N_move_dsbg: /^N[a-h]{2}[0-8]{1}[\+|\-]?$/,
+        N_move_dsbg: /^N[a-h|0-8]{1}[a-h]{1}[0-8]{1}[\+|\-]?$/, 
         N_capture: /^Nx[a-h]{1}[0-8]{1}[\+|\-]?$/,
-        N_capture_dsbg: /^N[a-h]{1}x[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        N_capture_dsbg: /^N[a-h|0-8]{1}x[a-h]{1}[0-8]{1}[\+|\-]?$/,
         B_move: /^B[a-h]{1}[0-8]{1}[\+|\-]?$/,
         B_capture: /^Bx[a-h]{1}[0-8]{1}[\+|\-]?$/,
         Q_move: /^Q[a-h]{1}[0-8]{1}[\+|\-]?$/,
@@ -47,8 +47,8 @@ class Puzzle {
             move = move.substring(0, 2);
         }
 
-        // 2 disambiguating types are possible. Regular move (eg: Rbc8) or capture (eg: Rbxc8).
-        // In both cases the second letter is the file letter.
+        // 2 disambiguating types are possible. Regular move (eg: Rbc8, N2b3) or capture (eg: Rbxc8).
+        // In both cases the second letter is either the file letter or the row number.
         parsing.disambiguating = (move.length == 4 && move.charAt(1) != 'x') || move.length == 5 ? move.charAt(1) : '';
 
         // Disambiguating might be used for pawns during capturing. But unlike the other pieces, no piece 
@@ -91,7 +91,7 @@ class Puzzle {
                     // Test each move.
                     for (let j = 0; j < moves.length; j++) {
                         // Check possible disambiguating.
-                        if (parsing.disambiguating && parsing.disambiguating != moves[j].charAt(0)) {
+                        if (parsing.disambiguating && parsing.disambiguating != moves[j].charAt(0) && parsing.disambiguating != moves[j].charAt(1)) {
                             continue;
                         }
 
@@ -113,7 +113,7 @@ class Puzzle {
         // Get the piece object.
         piece = this.#chessboard.getPieceAtPosition(startingPosition);
         // Move the piece.
-        this.#chessboard.movePiece(piece, parsing.position);
+        this.#chessboard.movePiece(piece, parsing.position, parsing.promotion);
 
         parsing.start = startingPosition;
 
@@ -203,8 +203,8 @@ class Puzzle {
                                 let square = this.#chessboard.getSquare(moves[0]);
 
                                 if (square == 'N' + this.#chessboard.whoseTurnIsIt()) {
-                                    // Make sure there is no disambiguating or that the disambiguating letter matches the starting position.
-                                    if (!parsing.disambiguating || (parsing.disambiguating && parsing.disambiguating == moves[0].charAt(0))) {
+                                    // Make sure there is no disambiguating or that the disambiguating letter or number matches the corresponding position (ie: file or row).
+                                    if (!parsing.disambiguating || (parsing.disambiguating && (parsing.disambiguating == moves[0].charAt(0) || parsing.disambiguating == moves[0].charAt(1)))) {
                                         startingPosition = moves[0];
                                         break search;
                                     }
@@ -229,8 +229,8 @@ class Puzzle {
                                 let square = this.#chessboard.getSquare(moves[1]);
 
                                 if (square == 'N' + this.#chessboard.whoseTurnIsIt()) {
-                                    // Make sure there is no disambiguating or that the disambiguating letter matches the starting position.
-                                    if (!parsing.disambiguating || (parsing.disambiguating && parsing.disambiguating == moves[1].charAt(0))) {
+                                    // Make sure there is no disambiguating or that the disambiguating letter or number matches the corresponding position (ie: file or row).
+                                    if (!parsing.disambiguating || (parsing.disambiguating && (parsing.disambiguating == moves[1].charAt(0) || parsing.disambiguating == moves[1].charAt(1)))) {
                                         startingPosition = moves[1];
                                         break search;
                                     }
@@ -242,6 +242,7 @@ class Puzzle {
 
         // Get the knight object.
         const knight = this.#chessboard.getPieceAtPosition(startingPosition);
+
         // Move the knight.
         this.#chessboard.movePiece(knight, parsing.position);
 
@@ -305,7 +306,7 @@ class Puzzle {
     run(pgn) {
         let moves = pgn.split(' ');
         //console.log(moves); // For debuging purpose.
-        //moves = moves.slice(0, 118);
+        //moves = moves.slice(0, 22); // Idem
         const parsings = []; 
         // The functions associated with the piece letter.
         const functions = {P: 'pawn', R: 'rook', N: 'knight', B: 'bishop', Q: 'queen', K: 'king', C: 'castling'};
