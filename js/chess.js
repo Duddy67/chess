@@ -558,6 +558,7 @@ function setInformation(chessboard) {
     if (chessboard.getPuzzleSolution().length) {
         const computerSide = chessboard.getStartPuzzleIndex() % 2 ? 'White' : 'Black';
         document.getElementById('gameInformation').innerHTML = 'Find the best move for ' + computerSide;
+        document.getElementById('puzzleInformation').innerHTML = '';
     }
     // Standard game.
     else {

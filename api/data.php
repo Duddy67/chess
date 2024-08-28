@@ -1,6 +1,9 @@
 <?php
 
-$file = fopen('puzzle-ids-1.txt', 'r');
+// Pick a random file number.
+$fileNb = random_int(1, 21);
+
+$file = fopen('puzzle-ids/puzzle-ids-'.$fileNb.'.txt', 'r');
 
 if ($file) {
     $ids = [];
@@ -14,7 +17,7 @@ if ($file) {
     fclose($file);
 }
 
-// Pick a random index from the array.
+// Pick a random index from the id array.
 $i = random_int(0, count($ids) - 1);
 
 // Return a random puzzle index.
