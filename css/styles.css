@@ -71,6 +71,14 @@
   /*background-color: #b5915f;*/ /* beige */
 }
 
+.highlight-even {
+  background-color: #eeff91 !important;
+}
+
+.highlight-odd {
+  background-color: #b4c173 !important;
+}
+
 .move {
   /*background-color: red !important;*/ 
   background-image: url("../images/move.png"), url("../images/move.png");

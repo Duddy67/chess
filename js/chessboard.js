@@ -394,6 +394,8 @@ class Chessboard {
         // Important: Get the SAN before the move is played as tests for disambiguating 
         //            won't work once the piece and board attributes have changed. 
         data.move = this.#getStandardAlgebraicNotation(data);
+        // Get the UCI notation as well.
+        data.uci = this.#getUniverselChessInterfaceNotation(data);
 
         // Check for a possible puzzle in play.
         if (!this.#playPuzzle(data)) {

@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let computerSide = null;
     let nextPuzzleMove;
     let totalPuzzleMoves = null;
+    let puzzleFirstMove = null;
 
     // Listen to events.
 
@@ -53,8 +54,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             chessboard.setPuzzleSolution(data.puzzle.solution);
             totalPuzzleMoves = chessboard.getHistory().length + data.puzzle.solution.length;
+            puzzleFirstMove = chessboard.getHistory().length + 1;
             clearInformation();
             setInformation(chessboard, computerSide);
+            highlightPuzzleLatestMove();
         }).catch(error => {
             console.log('Promise rejected: ' + error.message);
         });
@@ -67,6 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 chessboard.reset();
                 createChessboard(chessboard);
                 totalPuzzleMoves = null;
+                puzzleFirstMove = null;
                 gameOver = false;
                 // Clear history.
                 document.getElementById('history').getElementsByTagName('tbody')[0].innerHTML = '';
@@ -139,6 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             hidePossibleMoves();
             hidePossibleCastlings();
+            hidePuzzleLatestMove();
             selectedPiece = []
         }
 
@@ -185,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 hidePossibleMoves();
                 selectedPiece = []
+                hidePuzzleLatestMove();
             }
         }
 
@@ -195,6 +201,9 @@ document.addEventListener('DOMContentLoaded', () => {
             nextPuzzleMove = '';
             // Play the puzzle move.
             playMove(move, chessboard);
+        }
+
+        if (chessboard.getHistory().length == puzzleFirstMove) {
         }
 
         // Check for the last move of the puzzle.
@@ -351,10 +360,15 @@ function createChessboard(chessboard) {
 
     // Loop through the 2 dimensional chessboard array.
     for (let i = 0; i < board.length; i++) {
+        // Adjust a variable to match the even/odd square logic of the board. 
+        let evenOdd = i % 2 ? 1 : 0;
+
         for (let j = 0; j < board[i].length; j++) {
             let square = document.createElement('div');
             // Set the position coordinates as id (eg: a8, e2...).
             square.setAttribute('id', files[j] + ranks[i]);
+            // Set the square type (even or odd).
+            square.setAttribute('data-type', evenOdd % 2 ? 'odd' : 'even');
 
             // Check for the chessboard coordinate marks.
 
@@ -384,6 +398,8 @@ function createChessboard(chessboard) {
 
             // Add the square to the chessboard.
             document.getElementById('chessboard').append(square);
+
+            evenOdd++;
         }
     }
 }
@@ -448,6 +464,33 @@ function hideKingAttacked() {
     }
 } 
 
+function highlightPuzzleLatestMove() {
+    // Get the last element of the history table.
+    const lastRow = document.getElementById('history').rows.length;
+    const element = document.getElementById('move-history-' + lastRow);
+    // Get both the starting and ending position from the UCI notation.
+    const from = element.dataset.uci.slice(0, 2);
+    const to = element.dataset.uci.slice(2, 4);
+
+    // Set a class to the squares according to their type (ie: odd or even).
+    const startingSquare = document.getElementById(from);
+    startingSquare.classList.add('highlight-' + startingSquare.dataset.type); 
+
+    const endingSquare = document.getElementById(to);
+    endingSquare.classList.add('highlight-' + endingSquare.dataset.type); 
+}
+
+function hidePuzzleLatestMove() {
+    // Important: Use the * selector instead of ^ as the elements have multiple classes and ^ won't match 
+    //            the string if the targeted class is not in first position.
+    const squares = document.querySelectorAll('[class*="highlight-"]');
+
+    for (let i = 0; i < squares.length; i++) {
+        const className = squares[i].classList.contains('highlight-even') ? 'highlight-even' : 'highlight-odd';
+        squares[i].classList.remove(className);
+    }
+}
+
 /*
  * Moves a piece to a given position on the HTML chessboard. Removes a captured piece if any.
  */
@@ -494,8 +537,10 @@ function updateHistory(chessboard) {
     let tdMove = document.createElement('td');
     //tdIndex.setAttribute('class', 'history-index');
     tdIndex.setAttribute('id', 'history-index-' + chessboard.getHistory().length);
+    tdMove.setAttribute('id', 'move-history-' + chessboard.getHistory().length);
     tdMove.setAttribute('class', 'move-history');
     tdMove.setAttribute('data-move', history[history.length - 1].move);
+    tdMove.setAttribute('data-uci', history[history.length - 1].uci);
     tdMove.setAttribute('data-move-number', chessboard.getHistory().length);
     tdMove.setAttribute('data-history-index', history.length - 1);
 
@@ -550,6 +595,7 @@ function playMove(move, chessboard) {
     setTimeout(() => {
         chessboard.movePiece(piece, to, promotion);
         movePiece(from, to, promotion);
+        highlightPuzzleLatestMove();
     }, 500);
 }
 
