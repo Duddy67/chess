@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         getPuzzleId().then(data => {
             console.log('Puzzle id: ' + data);
-            //data = '0Qeu6'; // Debug: To test specific puzzles.
+            //data = 'WoMvk'; // Debug: To test specific puzzles.
             // Chain the second request once the random puzzle id is returned.
             return api.getPuzzleById(data);
         }).then(data => {

@@ -5,10 +5,11 @@ class Puzzle {
     #parsers = {
         P_move: /^[a-h]{1}[0-8]{1}[\+|\-]?$/, 
         P_capture_dsbg: /^[a-h]{1}x[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        P_promotion: /^[a-h]{1}[0-8]{1}=[A-Z]{1}[\+|\-]?$/, 
         R_move: /^R[a-h]{1}[0-8]{1}[\+|\-]?$/,
-        R_move_dsbg: /^R[a-h]{2}[0-8]{1}[\+|\-]?$/,
+        R_move_dsbg: /^R[0-8|a-h]{1}[a-h]{1}[0-8]{1}[\+|\-]?$/,
         R_capture: /^Rx[a-h]{1}[0-8]{1}[\+|\-]?$/,
-        R_capture_dsbg: /^R[a-h]{1}x[a-h]{1}[0-8]{1}[\+|\-]?$/,
+        R_capture_dsbg: /^R[0-8|a-h]{1}x[a-h]{1}[0-8]{1}[\+|\-]?$/,
         N_move: /^N[a-h]{1}[0-8]{1}[\+|\-]?$/,
         N_move_dsbg: /^N[a-h|0-8]{1}[a-h]{1}[0-8]{1}[\+|\-]?$/, 
         N_capture: /^Nx[a-h]{1}[0-8]{1}[\+|\-]?$/,
@@ -306,7 +307,7 @@ class Puzzle {
     run(pgn) {
         let moves = pgn.split(' ');
         //console.log(moves); // For debuging purpose.
-        //moves = moves.slice(0, 22); // Idem
+        //moves = moves.slice(0, 19); // Idem
         const parsings = []; 
         // The functions associated with the piece letter.
         const functions = {P: 'pawn', R: 'rook', N: 'knight', B: 'bishop', Q: 'queen', K: 'king', C: 'castling'};
